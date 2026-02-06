@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  ROOM_ADMIN
+}
+
+enum RoomStatus {
+  AVAILABLE
+  RESERVED
+  OCCUPIED
+  UNAVAILABLE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+}
+
+model User {
+  id          String    @id @default(uuid())
+  phoneNumber String    @unique
+  role        Role      @default(CUSTOMER)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  hotels      Hotel[]   @relation("HotelAdmin")
+  bookings    Booking[]
+}
+
+model Hotel {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  address     String
+  city        String
+  country     String
+  latitude    Float?
+  longitude   Float?
+  adminId     String?
+  admin       User?    @relation("HotelAdmin", fields: [adminId], references: [id])
+  rooms       Room[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([city, country])
+}
+
+model Room {
+  id            String     @id @default(uuid())
+  hotelId       String
+  hotel         Hotel      @relation(fields: [hotelId], references: [id])
+  type          String
+  pricePerNight Decimal    @db.Decimal(10, 2)
+  services      Json?
+  status        RoomStatus @default(AVAILABLE)
+  bookings      Booking[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([hotelId, status])
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  userId        String
+  roomId        String
+  checkIn       DateTime
+  checkOut      DateTime
+  status        BookingStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
+  totalPrice    Decimal?      @db.Decimal(10, 2)
+  user          User          @relation(fields: [userId], references: [id])
+  room          Room          @relation(fields: [roomId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([roomId, status])
+  @@index([userId, status])
+}
+
+model Otp {
+  id          String    @id @default(uuid())
+  phoneNumber String
+  code        String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([phoneNumber, expiresAt])
+}
