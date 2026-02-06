@@ -23,6 +23,7 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "packageManager": "npm@11.8.0",
   "bugs": {
     "url": "https://github.com/pawloshabtez3/hotel-management-system/issues"
   },
