@@ -6,6 +6,7 @@ import { validateEnv } from './config/env.validation';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { HotelsModule } from './hotels/hotels.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { HotelsModule } from './hotels/hotels.module';
     PrismaModule,
     RedisModule,
     HotelsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
