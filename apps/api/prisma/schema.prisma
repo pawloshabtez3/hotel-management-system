@@ -37,6 +37,7 @@ model User {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   hotels      Hotel[]   @relation("HotelAdmin")
+  rating      Float?
   bookings    Booking[]
 }
 
@@ -44,6 +45,7 @@ model Hotel {
   id          String   @id @default(uuid())
   name        String
   description String?
+  rating      Float?
   address     String
   city        String
   country     String
