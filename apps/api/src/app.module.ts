@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { HotelsModule } from './hotels/hotels.module';
 import { AuthModule } from './auth/auth.module';
+import { RealtimeModule } from './realtime/realtime.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
     RedisModule,
     HotelsModule,
     AuthModule,
+    RealtimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
