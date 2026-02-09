@@ -16,11 +16,11 @@ import { Roles } from './decorators/roles.decorator';
 import { Role } from '@prisma/client';
 
 const sendOtpSchema = z.object({
-  phoneNumber: z.string().min(5),
+  email: z.string().email(),
 });
 
 const verifyOtpSchema = z.object({
-  phoneNumber: z.string().min(5),
+  email: z.string().email(),
   code: z.string().regex(/^\d{6}$/),
 });
 
@@ -31,15 +31,15 @@ export class AuthController {
   @Post('otp/send')
   @HttpCode(200)
   async sendOtp(@Body() body: unknown) {
-    const { phoneNumber } = sendOtpSchema.parse(body);
-    return this.authService.sendOtp({ phoneNumber });
+    const { email } = sendOtpSchema.parse(body);
+    return this.authService.sendOtp({ email });
   }
 
   @Post('otp/verify')
   @HttpCode(200)
   async verifyOtp(@Body() body: unknown) {
-    const { phoneNumber, code } = verifyOtpSchema.parse(body);
-    return this.authService.verifyOtp({ phoneNumber, code });
+    const { email, code } = verifyOtpSchema.parse(body);
+    return this.authService.verifyOtp({ email, code });
   }
 
   @Get('me')

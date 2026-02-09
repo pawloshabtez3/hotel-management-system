@@ -8,6 +8,13 @@ export class RedisService implements OnModuleDestroy {
   constructor() {
     const url = process.env.REDIS_URL || 'redis://localhost:6379';
     this.client = new Redis(url);
+
+    this.client.on('error', (error) => {
+      // Prevent ioredis from emitting unhandled error events.
+      // Intentionally keep this lightweight; upstream code decides whether Redis is required.
+      // eslint-disable-next-line no-console
+      console.warn('[redis] connection error:', error?.message ?? error);
+    });
   }
 
   getClient(): Redis {
