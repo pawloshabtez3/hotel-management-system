@@ -32,13 +32,16 @@ enum PaymentStatus {
 
 model User {
   id          String    @id @default(uuid())
-  phoneNumber String    @unique
+  phoneNumber String?   @unique
+  email       String?
   role        Role      @default(CUSTOMER)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   hotels      Hotel[]   @relation("HotelAdmin")
   rating      Float?
   bookings    Booking[]
+
+  @@index([email])
 }
 
 model Hotel {

@@ -7,16 +7,16 @@ export default function LoginPage() {
           Sign in with OTP
         </h1>
         <p className="mt-2 text-sm text-foreground/70">
-          We will text a one-time password to verify your account.
+          We will send a one-time password to verify your account.
         </p>
       </div>
       <form className="flex flex-col gap-4">
         <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
-          Phone number
+          Email
           <input
             className="mt-2 w-full rounded-2xl border border-foreground/15 px-4 py-3 text-sm"
-            type="tel"
-            placeholder="+234 801 234 5678"
+            type="email"
+            placeholder="you@example.com"
           />
         </label>
         <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
