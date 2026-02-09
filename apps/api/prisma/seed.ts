@@ -2,9 +2,39 @@ import "dotenv/config";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import fs from "node:fs";
+import path from "node:path";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
+
+type HotelJson = {
+  value: Array<{
+    HotelId: string;
+    HotelName: string;
+    Description?: string;
+    Rating?: number;
+    IsDeleted?: boolean;
+    Address?: {
+      StreetAddress?: string;
+      City?: string;
+      Country?: string;
+    };
+    Location?: {
+      coordinates?: [number, number];
+    };
+    Rooms?: Array<{
+      Description?: string;
+      Description_fr?: string;
+      Type?: string;
+      BaseRate?: number;
+      BedOptions?: string;
+      SleepsCount?: number;
+      SmokingAllowed?: boolean;
+      Tags?: string[];
+    }>;
+  }>;
+};
 
 async function main() {
   const adminPhone = "+10000000001";
@@ -18,52 +48,56 @@ async function main() {
     },
   });
 
-  const hotel = await prisma.hotel.upsert({
-    where: { id: "seed-hotel-1" },
-    update: {},
-    create: {
-      id: "seed-hotel-1",
-      name: "Harbor Vista Hotel",
-      description: "Waterfront stay with modern rooms and breakfast options.",
-      address: "123 Seaside Blvd",
-      city: "Lagos",
-      country: "Nigeria",
-      latitude: 6.5244,
-      longitude: 3.3792,
-      adminId: admin.id,
-    },
-  });
+  const hotelJsonPath = path.resolve(__dirname, "../../..", "hotel.json");
+  const raw = fs.readFileSync(hotelJsonPath, "utf-8");
+  const parsed = JSON.parse(raw) as HotelJson;
 
-  const existingRooms = await prisma.room.count({
-    where: { hotelId: hotel.id },
-  });
+  const hotels = (parsed.value ?? []).filter((h) => !h.IsDeleted);
 
-  if (existingRooms === 0) {
-    await prisma.room.createMany({
-      data: [
-        {
-          hotelId: hotel.id,
-          type: "Standard",
-          pricePerNight: new Prisma.Decimal("85.00"),
-          services: { breakfast: false, wifi: true },
-          status: "AVAILABLE",
-        },
-        {
-          hotelId: hotel.id,
-          type: "Deluxe",
-          pricePerNight: new Prisma.Decimal("120.00"),
-          services: { breakfast: true, wifi: true },
-          status: "AVAILABLE",
-        },
-        {
-          hotelId: hotel.id,
-          type: "Suite",
-          pricePerNight: new Prisma.Decimal("200.00"),
-          services: { breakfast: true, wifi: true, minibar: true },
-          status: "AVAILABLE",
-        },
-      ],
+  await prisma.booking.deleteMany();
+  await prisma.room.deleteMany();
+  await prisma.hotel.deleteMany();
+
+  for (const h of hotels) {
+    const coords = h.Location?.coordinates;
+    const longitude = Array.isArray(coords) ? coords[0] : undefined;
+    const latitude = Array.isArray(coords) ? coords[1] : undefined;
+
+    const hotel = await prisma.hotel.create({
+      data: {
+        id: h.HotelId,
+        name: h.HotelName,
+        description: h.Description ?? null,
+        rating: typeof h.Rating === "number" ? h.Rating : null,
+        address: h.Address?.StreetAddress ?? "",
+        city: h.Address?.City ?? "",
+        country: h.Address?.Country ?? "",
+        latitude: typeof latitude === "number" ? latitude : null,
+        longitude: typeof longitude === "number" ? longitude : null,
+        adminId: admin.id,
+      },
     });
+
+    const rooms = (h.Rooms ?? []).map((r) => ({
+      hotelId: hotel.id,
+      type: r.Type ?? "",
+      pricePerNight: new Prisma.Decimal(String(r.BaseRate ?? 0)),
+      services: {
+        description: r.Description ?? null,
+        description_fr: r.Description_fr ?? null,
+        bedOptions: r.BedOptions ?? null,
+        sleepsCount: r.SleepsCount ?? null,
+        smokingAllowed: r.SmokingAllowed ?? null,
+        tags: r.Tags ?? [],
+      },
+      status: "AVAILABLE" as const,
+    }));
+
+    if (rooms.length > 0) {
+      await prisma.room.createMany({
+        data: rooms,
+      });
+    }
   }
 }
 
