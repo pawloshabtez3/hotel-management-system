@@ -25,20 +25,20 @@ export class AuthService {
     private readonly jwt: JwtService,
   ) {}
 
-  private normalizePhoneNumber(phoneNumber: string): string {
-    return phoneNumber.trim();
+  private normalizeEmail(email: string): string {
+    return email.trim().toLowerCase();
   }
 
-  private otpKey(phoneNumber: string): string {
-    return `otp:${phoneNumber}`;
+  private otpKey(email: string): string {
+    return `otp:${email}`;
   }
 
   private generateOtpCode(): string {
     return crypto.randomInt(100000, 1000000).toString();
   }
 
-  async sendOtp(input: { phoneNumber: string }) {
-    const phoneNumber = this.normalizePhoneNumber(input.phoneNumber);
+  async sendOtp(input: { email: string }) {
+    const email = this.normalizeEmail(input.email);
     const code = this.generateOtpCode();
 
     const payload: StoredOtp = {
@@ -46,7 +46,7 @@ export class AuthService {
       attempts: 0,
     };
 
-    await this.redis.set(this.otpKey(phoneNumber), JSON.stringify(payload), this.otpTtlSeconds);
+    await this.redis.set(this.otpKey(email), JSON.stringify(payload), this.otpTtlSeconds);
 
     const isProd = process.env.NODE_ENV === 'production';
 
@@ -59,9 +59,9 @@ export class AuthService {
     };
   }
 
-  async verifyOtp(input: { phoneNumber: string; code: string }) {
-    const phoneNumber = this.normalizePhoneNumber(input.phoneNumber);
-    const key = this.otpKey(phoneNumber);
+  async verifyOtp(input: { email: string; code: string }) {
+    const email = this.normalizeEmail(input.email);
+    const key = this.otpKey(email);
 
     const raw = await this.redis.get(key);
     if (!raw) {
@@ -89,16 +89,21 @@ export class AuthService {
 
     await this.redis.del(key);
 
-    const user = await this.prisma.user.upsert({
-      where: { phoneNumber },
-      update: {},
-      create: { phoneNumber },
-      select: { id: true, phoneNumber: true, role: true },
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email },
+      select: { id: true, email: true, role: true },
     });
+
+    const user =
+      existingUser ??
+      (await this.prisma.user.create({
+        data: { email },
+        select: { id: true, email: true, role: true },
+      }));
 
     const accessToken = await this.jwt.signAsync({
       sub: user.id,
-      phoneNumber: user.phoneNumber,
+      email: user.email,
       role: user.role,
     });
 

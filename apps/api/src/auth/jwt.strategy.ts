@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 type JwtPayload = {
   sub: string;
-  phoneNumber: string;
+  email: string | null;
   role: string;
 };
 
@@ -30,7 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     return {
       id: payload.sub,
-      phoneNumber: payload.phoneNumber,
+      email: payload.email,
       role: payload.role,
     };
   }
