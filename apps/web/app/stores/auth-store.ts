@@ -4,7 +4,7 @@ import { create } from "zustand";
 
 export type AuthUser = {
   id: string;
-  phoneNumber: string;
+  email: string | null;
   role: "CUSTOMER" | "ROOM_ADMIN";
 };
 

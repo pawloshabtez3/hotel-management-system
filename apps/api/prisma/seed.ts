@@ -37,16 +37,26 @@ type HotelJson = {
 };
 
 async function main() {
-  const adminPhone = "+10000000001";
+  const adminEmail = "admin@demo.local";
 
-  const admin = await prisma.user.upsert({
-    where: { phoneNumber: adminPhone },
-    update: { role: "ROOM_ADMIN" },
-    create: {
-      phoneNumber: adminPhone,
-      role: "ROOM_ADMIN",
-    },
+  const existingAdmin = await prisma.user.findFirst({
+    where: { email: adminEmail },
+    select: { id: true },
   });
+
+  const admin = existingAdmin
+    ? await prisma.user.update({
+        where: { id: existingAdmin.id },
+        data: { role: "ROOM_ADMIN" },
+        select: { id: true },
+      })
+    : await prisma.user.create({
+        data: {
+          email: adminEmail,
+          role: "ROOM_ADMIN",
+        },
+        select: { id: true },
+      });
 
   const hotelJsonPath = path.resolve(__dirname, "../../..", "hotel.json");
   const raw = fs.readFileSync(hotelJsonPath, "utf-8");
