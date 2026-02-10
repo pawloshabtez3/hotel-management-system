@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { join } from 'node:path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validateEnv } from './config/env.validation';
@@ -15,6 +16,11 @@ import { RoomsModule } from './rooms/rooms.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: [
+        join(__dirname, '..', '..', '.env'),
+        join(process.cwd(), '.env'),
+        join(process.cwd(), 'apps', 'api', '.env'),
+      ],
       validate: validateEnv,
     }),
     PrismaModule,
