@@ -120,6 +120,40 @@ export class BookingsService {
     });
   }
 
+  async getAdminBookings(adminId: string) {
+    return this.prisma.booking.findMany({
+      where: {
+        room: {
+          hotel: {
+            adminId,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        room: {
+          select: {
+            id: true,
+            type: true,
+            pricePerNight: true,
+            status: true,
+            hotel: {
+              select: {
+                id: true,
+                name: true,
+                city: true,
+                country: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: { id: true, email: true },
+        },
+      },
+    });
+  }
+
   async createPaymentIntent({
     bookingId,
     userId,

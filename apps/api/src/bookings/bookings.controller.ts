@@ -12,6 +12,9 @@ import {
 import type { Request } from 'express';
 import { z } from 'zod';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 import { BookingsService } from './bookings.service';
 
 const createBookingSchema = z.object({
@@ -55,6 +58,18 @@ export class BookingsController {
     }
 
     return this.bookingsService.getUserBookings(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  @Get('admin/bookings')
+  async getAdminBookings(@Req() req: Request) {
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.bookingsService.getAdminBookings(user.id);
   }
 
   @UseGuards(JwtAuthGuard)

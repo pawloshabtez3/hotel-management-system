@@ -9,5 +9,6 @@ import { RoomsGateway } from './rooms.gateway';
     }),
   ],
   providers: [RoomsGateway],
+  exports: [RoomsGateway],
 })
 export class RealtimeModule {}

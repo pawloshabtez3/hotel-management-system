@@ -128,4 +128,15 @@ export class RoomsGateway {
     this.server.to(`room:${roomId}`).emit('room:update', payload);
     return { ok: true };
   }
+
+  notifyRoomUpdate(roomId: string, status: string) {
+    const payload = {
+      roomId,
+      status,
+      at: new Date().toISOString(),
+      source: 'server',
+    };
+
+    this.server.to(`room:${roomId}`).emit('room:update', payload);
+  }
 }
