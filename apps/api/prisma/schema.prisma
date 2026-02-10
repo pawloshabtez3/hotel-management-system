@@ -86,6 +86,7 @@ model Booking {
   checkOut      DateTime
   status        BookingStatus @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
+  paymentIntentId String?
   totalPrice    Decimal?      @db.Decimal(10, 2)
   user          User          @relation(fields: [userId], references: [id])
   room          Room          @relation(fields: [roomId], references: [id])
