@@ -9,6 +9,7 @@ import { HotelsModule } from './hotels/hotels.module';
 import { AuthModule } from './auth/auth.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { BookingsModule } from './bookings/bookings.module';
+import { RoomsModule } from './rooms/rooms.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { BookingsModule } from './bookings/bookings.module';
     AuthModule,
     RealtimeModule,
     BookingsModule,
+    RoomsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
