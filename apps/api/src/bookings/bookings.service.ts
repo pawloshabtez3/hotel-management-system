@@ -9,33 +9,13 @@ import {
   Prisma,
   RoomStatus,
 } from '@prisma/client';
-import Stripe from 'stripe';
 import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../redis/redis.service';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const STRIPE_EVENT_TTL_SECONDS = 60 * 60 * 24;
 
 @Injectable()
 export class BookingsService {
-  private readonly stripe: Stripe | null;
-
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly redis: RedisService,
-  ) {
-    const secretKey = process.env.STRIPE_SECRET_KEY;
-    this.stripe = secretKey
-      ? new Stripe(secretKey, { apiVersion: '2024-06-20' })
-      : null;
-  }
-
-  private getStripe(): Stripe {
-    if (!this.stripe) {
-      throw new BadRequestException('Stripe is not configured');
-    }
-    return this.stripe;
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   async createBooking({
     userId,
@@ -169,78 +149,27 @@ export class BookingsService {
       throw new BadRequestException('Booking total price is missing');
     }
 
-    const stripe = this.getStripe();
-    const amount = Math.round(Number(booking.totalPrice) * 100);
-
-    const intent = await stripe.paymentIntents.create({
-      amount,
-      currency: 'usd',
-      metadata: {
-        bookingId: booking.id,
-        userId,
-      },
-    });
-
+    const paymentIntentId = `stub_${booking.id}`;
     await this.prisma.booking.update({
       where: { id: booking.id },
-      data: { paymentIntentId: intent.id },
+      data: { paymentIntentId },
     });
 
     return {
-      clientSecret: intent.client_secret,
-      paymentIntentId: intent.id,
-      amount,
+      clientSecret: 'stub_client_secret',
+      paymentIntentId,
+      amount: Math.round(Number(booking.totalPrice) * 100),
       currency: 'usd',
+      stub: true,
+      message: 'Stripe is stubbed; replace with real integration later.',
     };
   }
 
-  async handleStripeWebhook(rawBody: Buffer, signature: string) {
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    if (!webhookSecret) {
-      throw new BadRequestException('Stripe webhook secret is not configured');
-    }
-
-    const stripe = this.getStripe();
-    const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-    const eventKey = `stripe:event:${event.id}`;
-
-    const alreadyHandled = await this.redis.get(eventKey);
-    if (alreadyHandled) {
-      return { received: true, duplicate: true };
-    }
-
-    if (event.type === 'payment_intent.succeeded') {
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      const bookingId = paymentIntent.metadata?.bookingId;
-
-      if (bookingId) {
-        await this.prisma.booking.update({
-          where: { id: bookingId },
-          data: {
-            paymentStatus: PaymentStatus.PAID,
-            status: BookingStatus.CONFIRMED,
-            paymentIntentId: paymentIntent.id,
-          },
-        });
-      }
-    }
-
-    if (event.type === 'payment_intent.payment_failed') {
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      const bookingId = paymentIntent.metadata?.bookingId;
-
-      if (bookingId) {
-        await this.prisma.booking.update({
-          where: { id: bookingId },
-          data: {
-            paymentStatus: PaymentStatus.FAILED,
-          },
-        });
-      }
-    }
-
-    await this.redis.set(eventKey, '1', STRIPE_EVENT_TTL_SECONDS);
-
-    return { received: true };
+  async handleStripeWebhook(_rawBody: Buffer, _signature: string) {
+    return {
+      received: true,
+      stub: true,
+      message: 'Stripe webhook is stubbed; replace with real integration later.',
+    };
   }
 }
