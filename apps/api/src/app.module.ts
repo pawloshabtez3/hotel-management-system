@@ -8,6 +8,7 @@ import { RedisModule } from './redis/redis.module';
 import { HotelsModule } from './hotels/hotels.module';
 import { AuthModule } from './auth/auth.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RealtimeModule } from './realtime/realtime.module';
     HotelsModule,
     AuthModule,
     RealtimeModule,
+    BookingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
