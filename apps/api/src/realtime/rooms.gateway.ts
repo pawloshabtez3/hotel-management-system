@@ -55,6 +55,16 @@ export class RoomsGateway {
       this.pubClient = createClient({ url: redisUrl });
       this.subClient = this.pubClient.duplicate();
 
+      this.pubClient.on('error', (error) => {
+        // eslint-disable-next-line no-console
+        console.warn('[ws] redis pub error:', (error as any)?.message ?? error);
+      });
+
+      this.subClient.on('error', (error) => {
+        // eslint-disable-next-line no-console
+        console.warn('[ws] redis sub error:', (error as any)?.message ?? error);
+      });
+
       await Promise.all([this.pubClient.connect(), this.subClient.connect()]);
 
       this.server.adapter(createAdapter(this.pubClient, this.subClient));
