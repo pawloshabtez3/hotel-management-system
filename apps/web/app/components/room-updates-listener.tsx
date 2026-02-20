@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRoomRealtime } from "@/app/lib/use-room-realtime";
+import { useToast } from "@/app/lib/use-toast";
 
 type RoomUpdatesListenerProps = {
   roomIds: string[];
@@ -13,11 +15,23 @@ export function RoomUpdatesListener({
   hotelIds = [],
   resyncQueryKeys = [],
 }: RoomUpdatesListenerProps) {
+  const toast = useToast();
   const { latestEvent, isConnected } = useRoomRealtime({
     roomIds,
     hotelIds,
     resyncQueryKeys,
   });
+
+  useEffect(() => {
+    if (!latestEvent) {
+      return;
+    }
+
+    toast.info({
+      title: "Room status updated",
+      description: `Room ${latestEvent.roomId.slice(0, 8)} is now ${latestEvent.status ?? "unknown"}.`,
+    });
+  }, [latestEvent, toast]);
 
   if (!latestEvent) {
     return (

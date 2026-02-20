@@ -15,6 +15,7 @@ import { withProtectedRoute } from "@/app/lib/auth/withProtectedRoute";
 import { toApiErrorMessage } from "@/app/lib/api-client";
 import { RoomUpdatesListener } from "@/app/components/room-updates-listener";
 import { useAuthStore } from "@/app/stores/auth-store";
+import { useToast } from "@/app/lib/use-toast";
 
 const STATUS_OPTIONS: Array<{ label: string; value: RoomStatus }> = [
   { label: "Available", value: "AVAILABLE" },
@@ -26,7 +27,7 @@ function AdminPageContent() {
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const toast = useToast();
 
   const statsQuery = useQuery({
     queryKey: ["admin-room-stats"],
@@ -52,7 +53,6 @@ function AdminPageContent() {
   const updateStatusMutation = useMutation({
     mutationFn: ({ roomId, status }: { roomId: string; status: RoomStatus }) => updateRoomStatus(roomId, status),
     onMutate: async ({ roomId, status }) => {
-      setMessage(null);
       await queryClient.cancelQueries({ queryKey: ["admin-rooms"] });
       const previousRooms = queryClient.getQueryData<AdminRoomItem[]>(["admin-rooms"]);
 
@@ -66,10 +66,10 @@ function AdminPageContent() {
       if (context?.previousRooms) {
         queryClient.setQueryData(["admin-rooms"], context.previousRooms);
       }
-      setMessage("Status update failed. Please retry.");
+      toast.error({ title: "Status update failed", description: "Please retry." });
     },
     onSuccess: () => {
-      setMessage("Room status updated.");
+      toast.success({ title: "Room status updated" });
       void queryClient.invalidateQueries({ queryKey: ["admin-rooms"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-room-stats"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
@@ -79,10 +79,10 @@ function AdminPageContent() {
   const checkInMutation = useMutation({
     mutationFn: (bookingId: string) => checkInBooking(bookingId),
     onError: (error) => {
-      setMessage(toApiErrorMessage(error));
+      toast.error({ title: "Check-in failed", description: toApiErrorMessage(error) });
     },
     onSuccess: () => {
-      setMessage("Guest checked in successfully.");
+      toast.success({ title: "Guest checked in" });
       void queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-rooms"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-room-stats"] });
@@ -92,10 +92,10 @@ function AdminPageContent() {
   const checkOutMutation = useMutation({
     mutationFn: (bookingId: string) => checkOutBooking(bookingId),
     onError: (error) => {
-      setMessage(toApiErrorMessage(error));
+      toast.error({ title: "Check-out failed", description: toApiErrorMessage(error) });
     },
     onSuccess: () => {
-      setMessage("Guest checked out successfully.");
+      toast.success({ title: "Guest checked out" });
       void queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-rooms"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-room-stats"] });
@@ -199,8 +199,6 @@ function AdminPageContent() {
           })}
         </div>
       </section>
-
-      {message ? <p className="text-sm font-semibold text-accent-strong">{message}</p> : null}
 
       {selectedRoom ? (
         <section className="fixed inset-x-0 bottom-0 z-40 border-t border-foreground/10 bg-surface px-4 py-4 md:static md:rounded-3xl md:border md:border-foreground/10 md:bg-surface md:px-5">

@@ -9,6 +9,7 @@ import { maskEmail, normalizeEmail } from "@/app/lib/auth-utils";
 import { OTP_RESEND_COOLDOWN_SECONDS } from "@/app/lib/config";
 import { toApiErrorMessage } from "@/app/lib/api-client";
 import { useAuthStore } from "@/app/stores/auth-store";
+import { useToast } from "@/app/lib/use-toast";
 
 export default function LoginPage() {
   return (
@@ -32,11 +33,10 @@ function LoginContent() {
   const setPendingEmail = useAuthStore((state) => state.setPendingEmail);
   const setOtpStatus = useAuthStore((state) => state.setOtpStatus);
   const setStatus = useAuthStore((state) => state.setStatus);
+  const toast = useToast();
 
   const [email, setEmail] = useState(pendingEmail ?? "");
   const [otp, setOtp] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
   const nextPath = useMemo(() => {
@@ -67,8 +67,6 @@ function LoginContent() {
   const sendOtpMutation = useMutation({
     mutationFn: sendOtp,
     onMutate: () => {
-      setErrorMessage(null);
-      setMessage(null);
       setOtpStatus("sending");
     },
     onSuccess: (payload) => {
@@ -77,13 +75,20 @@ function LoginContent() {
 
       if (payload.emailSent) {
         setCooldown(OTP_RESEND_COOLDOWN_SECONDS);
-        setMessage("If this email is valid, a one-time code has been sent.");
+        toast.success({ title: "OTP sent", description: "Check your email for the verification code." });
       } else {
         setCooldown(0);
         if (payload.devOtp) {
-          setMessage(`Email delivery is unavailable in development. Use OTP: ${payload.devOtp}`);
+          toast.info({
+            title: "Email unavailable in development",
+            description: `Use OTP: ${payload.devOtp}`,
+            durationMs: 8000,
+          });
         } else {
-          setErrorMessage("Unable to send email code right now. Please try again shortly.");
+          toast.error({
+            title: "Unable to send code",
+            description: "Please try again shortly.",
+          });
         }
       }
 
@@ -91,29 +96,27 @@ function LoginContent() {
     },
     onError: (error) => {
       setOtpStatus("idle");
-      setErrorMessage(toApiErrorMessage(error));
+      toast.error({ title: "Send code failed", description: toApiErrorMessage(error) });
     },
   });
 
   const verifyOtpMutation = useMutation({
     mutationFn: ({ email, code }: { email: string; code: string }) => verifyOtp(email, code),
     onMutate: () => {
-      setErrorMessage(null);
-      setMessage(null);
       setOtpStatus("verifying");
       setStatus("loading");
     },
     onSuccess: (payload) => {
       setAuth(payload.user, payload.accessToken);
       setStatus("authenticated");
-      setMessage("Login successful. Redirecting...");
+      toast.success({ title: "Login successful", description: "Redirecting..." });
       const redirectPath = consumeAuthRedirect(nextPath);
       router.replace(redirectPath);
     },
     onError: () => {
       setOtpStatus("idle");
       setStatus("idle");
-      setErrorMessage("Verification failed. Check the code and try again.");
+      toast.error({ title: "Verification failed", description: "Check the code and try again." });
     },
   });
 
@@ -204,9 +207,6 @@ function LoginContent() {
           ? `Code sent to ${maskEmail(pendingEmail)} (expires shortly).`
           : "For privacy, we use generic auth responses and do not disclose account status."}
       </div>
-
-      {message ? <p className="text-sm font-semibold text-accent-strong">{message}</p> : null}
-      {errorMessage ? <p className="text-sm text-accent-strong">{errorMessage}</p> : null}
     </div>
   );
 }
