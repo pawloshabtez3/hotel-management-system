@@ -22,7 +22,7 @@ export function BookingGateButton() {
 
   return (
     <button
-      className="rounded-full bg-forest px-4 py-2 text-sm font-semibold text-surface"
+      className="btn-primary px-4 py-2"
       onClick={onStartBooking}
       type="button"
     >

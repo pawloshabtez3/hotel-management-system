@@ -45,12 +45,12 @@ export function LocationSelector() {
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-foreground/10 bg-surface px-3 py-2">
+    <div className="panel-soft flex min-w-64 flex-col gap-2 rounded-2xl px-3 py-2">
       <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sage">Location</p>
       <div className="flex items-center gap-2">
         <select
           aria-label="Choose city"
-          className="w-full rounded-xl border border-foreground/15 bg-surface px-3 py-2 text-sm"
+          className="input-base"
           disabled={mode === "gps"}
           onChange={(event) => setCity(event.target.value)}
           value={selectedCity}
@@ -62,7 +62,7 @@ export function LocationSelector() {
           ))}
         </select>
         <button
-          className="rounded-xl border border-foreground/15 px-3 py-2 text-xs font-semibold text-foreground"
+          className="btn-secondary px-3 py-2 text-xs"
           onClick={onUseGps}
           type="button"
         >
@@ -74,14 +74,14 @@ export function LocationSelector() {
       </div>
       <div className="flex gap-2 text-[10px] text-foreground/60">
         <button
-          className="rounded-full border border-foreground/10 px-2 py-1"
+          className="chip"
           onClick={() => setMode("manual")}
           type="button"
         >
           Manual
         </button>
         <button
-          className="rounded-full border border-foreground/10 px-2 py-1"
+          className="chip"
           onClick={() => setMode("gps")}
           type="button"
         >
