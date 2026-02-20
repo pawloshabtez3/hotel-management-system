@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f2ea;
-  --foreground: #1c1a16;
+  --background: #f5f7fb;
+  --foreground: #182033;
   --surface: #ffffff;
-  --surface-muted: #f0e8dc;
-  --accent: #c59a5c;
-  --accent-strong: #9f753a;
-  --forest: #2f4a3a;
-  --sage: #6f8b73;
-  --mist: #d7c7b4;
+  --surface-muted: #edf2fb;
+  --accent: #4f7cff;
+  --accent-strong: #355ce0;
+  --forest: #223a70;
+  --sage: #5f75a7;
+  --mist: #dbe5fb;
 }
 
 @theme inline {
@@ -27,9 +27,120 @@
 }
 
 body {
-  background: radial-gradient(1200px 700px at 20% 10%, #fff6e8 0%, transparent 60%),
-    radial-gradient(900px 600px at 90% 20%, #efe1cf 0%, transparent 55%),
+  min-height: 100vh;
+  background: radial-gradient(1200px 760px at 0% 0%, #e8f0ff 0%, transparent 60%),
+    radial-gradient(1000px 680px at 100% 0%, #f6f0ff 0%, transparent 56%),
+    radial-gradient(800px 700px at 50% 100%, #eaf6ff 0%, transparent 52%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), var(--font-sans), serif;
+  line-height: 1.2;
+}
+
+input,
+select,
+button,
+textarea {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  min-height: 44px;
+}
+
+button {
+  min-height: 44px;
+  cursor: pointer;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 65%, white);
+  outline-offset: 2px;
+}
+
+.glass-card {
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+  background: color-mix(in srgb, var(--surface) 88%, #f5f9ff);
+  box-shadow: 0 16px 44px color-mix(in srgb, var(--accent) 12%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.panel {
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+  background: var(--surface);
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.panel-soft {
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  background: var(--surface-muted);
+}
+
+.input-base {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+  background: var(--surface);
+  padding: 0.65rem 0.8rem;
+  font-size: 0.92rem;
+}
+
+.btn-primary {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 60%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 78%, white),
+    color-mix(in srgb, var(--accent-strong) 88%, #1f3fa0)
+  );
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: filter 180ms ease, transform 180ms ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.03);
+}
+
+.btn-secondary {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+
+.btn-secondary:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--foreground));
+  background: color-mix(in srgb, var(--surface) 78%, var(--mist));
+}
+
+.chip {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+  background: var(--surface);
+  padding: 0.38rem 0.72rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
