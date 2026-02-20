@@ -16,6 +16,8 @@ export type VerifyOtpResponse = {
   user: AuthUser;
 };
 
+export type AdminLoginResponse = VerifyOtpResponse;
+
 export type SendOtpResponse = {
   ok: boolean;
   ttlSeconds: number;
@@ -37,6 +39,7 @@ export type HotelListItem = {
   city: string;
   country: string;
   startingPrice: string | number | null;
+  keyService?: string;
 };
 
 export type HotelListQuery = {

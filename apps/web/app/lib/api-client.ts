@@ -13,6 +13,12 @@ function redirectToLogin() {
 
   const path = `${window.location.pathname}${window.location.search}`;
   const next = encodeURIComponent(path || "/bookings/new");
+
+  if (window.location.pathname.startsWith("/admin")) {
+    window.location.href = `/admin/login?next=${next}`;
+    return;
+  }
+
   window.location.href = `/login?next=${next}`;
 }
 

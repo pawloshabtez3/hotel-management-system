@@ -42,10 +42,10 @@ function LoginContent() {
   const nextPath = useMemo(() => {
     const next = searchParams.get("next");
     if (!next) {
-      return "/bookings/new";
+      return "/dashboard";
     }
 
-    return next.startsWith("/") ? next : "/bookings/new";
+    return next.startsWith("/") ? next : "/dashboard";
   }, [searchParams]);
 
   useEffect(() => {
