@@ -25,11 +25,54 @@ export type SendOtpResponse = {
 export type BookingStatus =
   | "PENDING"
   | "CONFIRMED"
-  | "CANCELLED"
-  | "CHECKED_IN"
-  | "CHECKED_OUT";
+  | "CANCELLED";
 
-export type RoomStatus = "AVAILABLE" | "RESERVED" | "OCCUPIED" | "MAINTENANCE";
+export type RoomStatus = "AVAILABLE" | "RESERVED" | "OCCUPIED" | "UNAVAILABLE";
+
+export type HotelListItem = {
+  id: string;
+  name: string;
+  rating: number | null;
+  city: string;
+  country: string;
+  startingPrice: string | number | null;
+};
+
+export type HotelListQuery = {
+  q?: string;
+  city?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  limit: number;
+};
+
+export type HotelRoom = {
+  id: string;
+  type: string;
+  pricePerNight: string | number;
+  services: {
+    description?: string | null;
+    description_fr?: string | null;
+    bedOptions?: string | null;
+    sleepsCount?: number | null;
+    smokingAllowed?: boolean | null;
+    tags?: string[];
+  } | null;
+  status: RoomStatus;
+};
+
+export type HotelDetail = {
+  id: string;
+  name: string;
+  description: string | null;
+  rating: number | null;
+  address: string;
+  city: string;
+  country: string;
+  latitude: number | null;
+  longitude: number | null;
+  rooms: HotelRoom[];
+};
 
 export type BookingItem = {
   id: string;
@@ -58,4 +101,19 @@ export type RoomUpdateEvent = {
   status: RoomStatus | null;
   at: string;
   source?: string;
+};
+
+export type CreateBookingPayload = {
+  roomId: string;
+  checkIn: string;
+  checkOut: string;
+};
+
+export type PaymentStubResponse = {
+  clientSecret: string;
+  paymentIntentId: string;
+  amount: number;
+  currency: string;
+  stub: boolean;
+  message: string;
 };
