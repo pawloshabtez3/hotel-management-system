@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { HotelListItem } from "@/app/lib/types";
 
 type HotelCardProps = {
@@ -43,11 +44,13 @@ export function HotelCard({ hotel, checkIn, checkOut, listView = false }: HotelC
         listView ? "flex flex-col md:flex-row" : "flex flex-col"
       }`}
     >
-      <img
+      <Image
         alt={hotel.name}
         className={`${listView ? "h-52 w-full md:h-auto md:w-72" : "h-52 w-full"} object-cover`}
+        height={500}
         loading="lazy"
         src={getImageUrl(hotel.id)}
+        width={800}
       />
       <div className="flex flex-1 flex-col gap-3 px-5 py-4">
         <div className="flex items-start justify-between gap-3">

@@ -24,6 +24,10 @@ export function connectSocket() {
     socket = io(WS_URL, {
       transports: ["websocket"],
       autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       auth: {
         token,
       },

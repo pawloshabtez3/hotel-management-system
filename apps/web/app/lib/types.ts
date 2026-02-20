@@ -86,6 +86,7 @@ export type BookingItem = {
   updatedAt: string;
   room?: {
     id: string;
+    type?: string | null;
     name?: string | null;
     number?: string | null;
     status?: RoomStatus;
@@ -99,9 +100,40 @@ export type BookingItem = {
 
 export type RoomUpdateEvent = {
   roomId: string;
+  hotelId?: string;
   status: RoomStatus | null;
   at: string;
   source?: string;
+};
+
+export type AdminRoomItem = {
+  id: string;
+  hotelId: string;
+  type: string;
+  status: RoomStatus;
+  pricePerNight: string | number;
+  hotel: {
+    id: string;
+    name: string;
+    city: string;
+    country: string;
+  };
+};
+
+export type AdminRoomStats = {
+  total: number;
+  available: number;
+  reserved: number;
+  occupied: number;
+  unavailable: number;
+  occupancyRate: number;
+};
+
+export type AdminBookingItem = BookingItem & {
+  user?: {
+    id: string;
+    email: string | null;
+  };
 };
 
 export type CreateBookingPayload = {

@@ -10,6 +10,20 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   const status = useAuthStore((state) => state.status);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    void navigator.serviceWorker.register("/sw.js").catch(() => {
+      // silently ignore in dev
+    });
+  }, []);
+
+  useEffect(() => {
     if (status === "authenticated") {
       connectSocket();
       return;

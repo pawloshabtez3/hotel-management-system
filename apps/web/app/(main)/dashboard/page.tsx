@@ -25,7 +25,7 @@ function DashboardPageContent() {
         <h1 className="mt-2 text-3xl font-semibold text-foreground">My bookings</h1>
       </div>
 
-      <RoomUpdatesListener roomIds={roomIds} />
+      <RoomUpdatesListener roomIds={roomIds} resyncQueryKeys={[["my-bookings"]]} />
 
       {bookingsQuery.isLoading ? (
         <div className="rounded-2xl border border-foreground/10 bg-surface px-4 py-6 text-sm text-foreground/70">

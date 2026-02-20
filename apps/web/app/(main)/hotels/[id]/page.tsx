@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
 import { getHotelDetail } from "@/app/lib/hotels-api";
 import { toApiErrorMessage } from "@/app/lib/api-client";
+import { RoomUpdatesListener } from "@/app/components/room-updates-listener";
 
 function getImageUrls(hotelId: string) {
   return [1, 2, 3].map((index) => `https://picsum.photos/seed/hotel-${hotelId}-${index}/900/600`);
@@ -46,6 +48,8 @@ export default function HotelDetailPage() {
     [hotelQuery.data?.rooms, selectedRoomId],
   );
 
+  const roomIds = useMemo(() => hotelQuery.data?.rooms.map((room) => room.id) ?? [], [hotelQuery.data]);
+
   const onContinue = () => {
     if (!selectedRoomId || !checkIn || !checkOut) {
       return;
@@ -77,17 +81,25 @@ export default function HotelDetailPage() {
 
       {hotelQuery.data ? (
         <>
+          <RoomUpdatesListener
+            roomIds={roomIds}
+            hotelIds={[params.id]}
+            resyncQueryKeys={[["hotel", params.id, checkIn, checkOut]]}
+          />
+
           <section className="rounded-3xl border border-foreground/10 bg-surface p-5 shadow-sm md:p-6">
             <p className="text-xs uppercase tracking-[0.2em] text-sage">{hotelQuery.data.city}</p>
             <h1 className="mt-1 text-3xl font-semibold text-foreground">{hotelQuery.data.name}</h1>
             <p className="mt-2 text-sm text-foreground/70">{hotelQuery.data.description ?? "No description available."}</p>
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               {getImageUrls(hotelQuery.data.id).map((url) => (
-                <img
+                <Image
                   alt={hotelQuery.data?.name}
                   className="h-44 w-full rounded-2xl object-cover"
+                  height={600}
                   key={url}
                   src={url}
+                  width={900}
                 />
               ))}
             </div>
