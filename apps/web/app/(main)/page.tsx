@@ -89,16 +89,19 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="rounded-3xl border border-foreground/10 bg-surface p-5 shadow-sm md:p-6">
+      <section className="glass-card rounded-3xl p-5 md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-sage">Discover stays</p>
-            <h1 className="mt-1 text-3xl font-semibold text-foreground">Browse and book hotels</h1>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-sage">Discover stays</p>
+            <h1 className="mt-1 text-3xl font-semibold text-foreground md:text-4xl">Browse and book hotels</h1>
+            <p className="mt-2 max-w-2xl text-sm text-foreground/70">
+              Find the best rooms in seconds with real-time availability and streamlined booking.
+            </p>
           </div>
           <div className="flex gap-2">
             <button
-              className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                viewMode === "grid" ? "bg-forest text-surface" : "border border-foreground/15"
+              className={`px-4 py-2 ${
+                viewMode === "grid" ? "btn-primary" : "btn-secondary"
               }`}
               onClick={() => setViewMode("grid")}
               type="button"
@@ -106,8 +109,8 @@ export default function HomePage() {
               Grid
             </button>
             <button
-              className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                viewMode === "list" ? "bg-forest text-surface" : "border border-foreground/15"
+              className={`px-4 py-2 ${
+                viewMode === "list" ? "btn-primary" : "btn-secondary"
               }`}
               onClick={() => setViewMode("list")}
               type="button"
@@ -121,7 +124,7 @@ export default function HomePage() {
           <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
             Search
             <input
-              className="mt-2 w-full rounded-2xl border border-foreground/15 bg-surface px-3 py-2 text-sm"
+              className="input-base mt-2"
               onChange={(event) => {
                 setSearch(event.target.value);
                 resetPagination();
@@ -134,7 +137,7 @@ export default function HomePage() {
           <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
             City
             <input
-              className="mt-2 w-full rounded-2xl border border-foreground/15 bg-surface px-3 py-2 text-sm"
+              className="input-base mt-2"
               onChange={(event) => {
                 setCity(event.target.value);
                 resetPagination();
@@ -147,7 +150,7 @@ export default function HomePage() {
           <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
             Minimum rating
             <select
-              className="mt-2 w-full rounded-2xl border border-foreground/15 bg-surface px-3 py-2 text-sm"
+              className="input-base mt-2"
               onChange={(event) => {
                 setRatingFilter(Number(event.target.value));
                 resetPagination();
@@ -164,7 +167,7 @@ export default function HomePage() {
           <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
             Max nightly price (${price})
             <input
-              className="mt-2 w-full"
+              className="mt-2 w-full accent-accent"
               max={600}
               min={50}
               onChange={(event) => {
@@ -180,7 +183,7 @@ export default function HomePage() {
           <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
             Check-in
             <input
-              className="mt-2 w-full rounded-2xl border border-foreground/15 bg-surface px-3 py-2 text-sm"
+              className="input-base mt-2"
               onChange={(event) => setCheckIn(event.target.value)}
               type="date"
               value={checkIn}
@@ -190,7 +193,7 @@ export default function HomePage() {
           <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
             Check-out
             <input
-              className="mt-2 w-full rounded-2xl border border-foreground/15 bg-surface px-3 py-2 text-sm"
+              className="input-base mt-2"
               onChange={(event) => setCheckOut(event.target.value)}
               type="date"
               value={checkOut}
@@ -200,20 +203,20 @@ export default function HomePage() {
       </section>
 
       {hotelsQuery.isLoading ? (
-        <div className="rounded-2xl border border-foreground/10 bg-surface px-4 py-6 text-sm text-foreground/70">
+        <div className="panel rounded-2xl px-4 py-6 text-sm text-foreground/70">
           Loading hotels...
         </div>
       ) : null}
 
       {hotelsQuery.isError ? (
-        <div className="rounded-2xl border border-foreground/10 bg-surface px-4 py-6 text-sm text-accent-strong">
+        <div className="panel rounded-2xl px-4 py-6 text-sm text-accent-strong">
           {toApiErrorMessage(hotelsQuery.error)}
         </div>
       ) : null}
 
       {!hotelsQuery.isLoading && !hotelsQuery.isError ? (
         <>
-          <div className="flex items-center justify-between rounded-2xl border border-foreground/10 bg-surface px-4 py-3 text-sm text-foreground/70">
+          <div className="panel flex items-center justify-between rounded-2xl px-4 py-3 text-sm text-foreground/70">
             <span>
               Showing {visibleHotels.length} of {filteredHotels.length} stays
             </span>
@@ -248,7 +251,7 @@ export default function HomePage() {
           <div ref={loadMoreRef} />
 
           {filteredHotels.length === 0 ? (
-            <div className="rounded-2xl border border-foreground/10 bg-surface px-4 py-6 text-sm text-foreground/70">
+            <div className="panel rounded-2xl px-4 py-6 text-sm text-foreground/70">
               No hotels match this filter set.
             </div>
           ) : null}

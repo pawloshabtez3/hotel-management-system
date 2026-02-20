@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import QRCode from "qrcode";
 import { withProtectedRoute } from "@/app/lib/auth/withProtectedRoute";
 import { createBooking, createPaymentStubByBookingId, getHotelDetail } from "@/app/lib/hotels-api";
@@ -96,30 +97,30 @@ function NewBookingPageContent() {
   const hasParams = Boolean(hotelId && roomId && checkIn && checkOut);
 
   return (
-    <div className="flex flex-col gap-4 rounded-3xl border border-foreground/10 bg-surface p-6">
-      <p className="text-xs uppercase tracking-[0.2em] text-sage">Booking flow</p>
-      <h1 className="text-2xl font-semibold text-foreground">Booking summary</h1>
+    <div className="glass-card flex flex-col gap-4 rounded-3xl p-6">
+      <p className="text-[11px] uppercase tracking-[0.24em] text-sage">Booking flow</p>
+      <h1 className="text-2xl font-semibold text-foreground md:text-3xl">Booking summary</h1>
 
       {!hasParams ? (
-        <div className="rounded-2xl border border-foreground/10 bg-surface-muted px-4 py-3 text-sm text-foreground/70">
+        <div className="panel-soft rounded-2xl px-4 py-3 text-sm text-foreground/70">
           Select a hotel and room first from the discovery page.
         </div>
       ) : null}
 
       {hotelQuery.isLoading ? (
-        <div className="rounded-2xl border border-foreground/10 bg-surface-muted px-4 py-3 text-sm text-foreground/70">
+        <div className="panel-soft rounded-2xl px-4 py-3 text-sm text-foreground/70">
           Loading booking details...
         </div>
       ) : null}
 
       {hotelQuery.isError ? (
-        <div className="rounded-2xl border border-foreground/10 bg-surface-muted px-4 py-3 text-sm text-accent-strong">
+        <div className="panel-soft rounded-2xl px-4 py-3 text-sm text-accent-strong">
           {toApiErrorMessage(hotelQuery.error)}
         </div>
       ) : null}
 
       {hasParams ? (
-        <div className="grid gap-3 rounded-2xl border border-foreground/10 bg-surface-muted p-4 text-sm text-foreground/75">
+        <div className="panel-soft grid gap-3 rounded-2xl p-4 text-sm text-foreground/75">
           <p>
             Hotel: <span className="font-semibold text-foreground">{hotelQuery.data?.name ?? hotelId}</span>
           </p>
@@ -139,7 +140,7 @@ function NewBookingPageContent() {
       ) : null}
 
       <button
-        className="rounded-full bg-forest px-5 py-3 text-sm font-semibold text-surface disabled:cursor-not-allowed disabled:opacity-50"
+        className="btn-primary px-5 py-3 disabled:cursor-not-allowed disabled:opacity-50"
         disabled={
           !hasParams ||
           bookingMutation.isPending ||
@@ -156,25 +157,32 @@ function NewBookingPageContent() {
       </button>
 
       {bookingMutation.isError ? (
-        <div className="rounded-2xl border border-foreground/10 bg-surface-muted px-4 py-3 text-sm text-accent-strong">
+        <div className="panel-soft rounded-2xl px-4 py-3 text-sm text-accent-strong">
           {toApiErrorMessage(bookingMutation.error)}
         </div>
       ) : null}
 
       {paymentMutation.isError ? (
-        <div className="rounded-2xl border border-foreground/10 bg-surface-muted px-4 py-3 text-sm text-accent-strong">
+        <div className="panel-soft rounded-2xl px-4 py-3 text-sm text-accent-strong">
           {toApiErrorMessage(paymentMutation.error)}
         </div>
       ) : null}
 
       {paymentMutation.isSuccess && bookingId ? (
-        <div className="grid gap-3 rounded-2xl border border-foreground/10 bg-surface-muted p-4">
-          <p className="text-sm font-semibold text-forest">Payment successful (stub)</p>
+        <div className="panel-soft grid gap-3 rounded-2xl p-4">
+          <p className="text-sm font-semibold text-accent-strong">Payment successful (stub)</p>
           <p className="text-xs text-foreground/70">
             Booking ID: {bookingId}. Keep this QR for check-in verification.
           </p>
           {qrDataUrl ? (
-            <img alt="Booking QR code" className="h-44 w-44 rounded-xl border border-foreground/10 bg-surface p-2" src={qrDataUrl} />
+            <Image
+              alt="Booking QR code"
+              className="h-44 w-44 rounded-xl border border-foreground/10 bg-surface p-2 shadow-sm"
+              height={176}
+              src={qrDataUrl}
+              unoptimized
+              width={176}
+            />
           ) : null}
         </div>
       ) : null}
@@ -188,7 +196,7 @@ export default function BookingNewPage() {
   return (
     <Suspense
       fallback={
-        <div className="rounded-2xl border border-foreground/10 bg-surface px-4 py-6 text-sm text-foreground/70">
+        <div className="panel rounded-2xl px-4 py-6 text-sm text-foreground/70">
           Loading booking page...
         </div>
       }
