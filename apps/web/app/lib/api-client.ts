@@ -47,10 +47,12 @@ apiClient.interceptors.response.use(
 
 export function toApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    const message =
-      typeof error.response?.data === "object" && error.response?.data
-        ? (error.response?.data as any).message
+    const data =
+      error.response?.data && typeof error.response.data === "object"
+        ? (error.response.data as { message?: string | string[] })
         : null;
+    const message =
+      data && "message" in data ? data.message : null;
 
     if (Array.isArray(message) && message.length > 0) {
       return String(message[0]);
