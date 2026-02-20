@@ -40,6 +40,15 @@ export class RedisService implements OnModuleDestroy {
     return this.client.del(key);
   }
 
+  async delByPrefix(prefix: string): Promise<number> {
+    const keys = await this.client.keys(`${prefix}*`);
+    if (keys.length === 0) {
+      return 0;
+    }
+
+    return this.client.del(...keys);
+  }
+
   async onModuleDestroy() {
     await this.client.quit();
   }

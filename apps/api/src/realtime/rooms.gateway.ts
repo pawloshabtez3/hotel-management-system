@@ -118,6 +118,20 @@ export class RoomsGateway {
     return { ok: true };
   }
 
+  @SubscribeMessage('hotel:join')
+  async joinHotel(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { hotelId?: string },
+  ) {
+    const hotelId = body?.hotelId?.trim();
+    if (!hotelId) {
+      throw new WsException('hotelId is required');
+    }
+
+    await client.join(`hotel:${hotelId}`);
+    return { ok: true };
+  }
+
   @SubscribeMessage('room:update')
   async roomUpdate(
     @ConnectedSocket() client: Socket,
@@ -143,7 +157,7 @@ export class RoomsGateway {
     return { ok: true };
   }
 
-  notifyRoomUpdate(roomId: string, status: string) {
+  notifyRoomUpdate(roomId: string, status: string, hotelId?: string) {
     const payload = {
       roomId,
       status,
@@ -152,5 +166,12 @@ export class RoomsGateway {
     };
 
     this.server.to(`room:${roomId}`).emit('room:update', payload);
+
+    if (hotelId) {
+      this.server.to(`hotel:${hotelId}`).emit('hotel:update', {
+        ...payload,
+        hotelId,
+      });
+    }
   }
 }

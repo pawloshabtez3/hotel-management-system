@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Param,
+  Query,
   Put,
   Req,
   UseGuards,
@@ -22,6 +24,30 @@ const updateRoomStatusSchema = z.object({
 @Controller('rooms')
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
+
+  @Get('admin/stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  async getAdminStats(@Req() req: Request, @Query('hotelId') hotelId?: string) {
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.roomsService.getAdminRoomStats(user.id, hotelId);
+  }
+
+  @Get('admin/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  async getAdminRooms(@Req() req: Request, @Query('hotelId') hotelId?: string) {
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.roomsService.getAdminRooms(user.id, hotelId);
+  }
 
   @Put(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
