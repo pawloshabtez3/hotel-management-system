@@ -111,6 +111,7 @@ export type RoomUpdateEvent = {
 
 export type AdminRoomItem = {
   id: string;
+  roomNumber?: string;
   hotelId: string;
   type: string;
   status: RoomStatus;
@@ -130,13 +131,28 @@ export type AdminRoomStats = {
   occupied: number;
   unavailable: number;
   occupancyRate: number;
+  todayCheckIns: number;
+  todayCheckOuts: number;
 };
 
 export type AdminBookingItem = BookingItem & {
   user?: {
     id: string;
     email: string | null;
+    phoneNumber?: string | null;
   };
+};
+
+export type AdminSettings = {
+  hotel: {
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    country: string;
+  } | null;
+  roomTypes: string[];
+  allowPayLater: boolean;
 };
 
 export type CreateBookingPayload = {
