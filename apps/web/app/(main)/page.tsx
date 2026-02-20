@@ -22,6 +22,11 @@ export default function HomePage() {
   const [visibleCount, setVisibleCount] = useState(9);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
+  const resetPagination = () => {
+    setVisibleCount(9);
+    setQueryLimit(PAGE_SIZE);
+  };
+
   const debouncedSearch = useDebouncedValue(search, 300);
   const debouncedCity = useDebouncedValue(city, 300);
   const debouncedPrice = useDebouncedValue(price, 300);
@@ -51,11 +56,6 @@ export default function HomePage() {
     () => filteredHotels.slice(0, visibleCount),
     [filteredHotels, visibleCount],
   );
-
-  useEffect(() => {
-    setVisibleCount(9);
-    setQueryLimit(PAGE_SIZE);
-  }, [debouncedCity, debouncedPrice, debouncedSearch, ratingFilter]);
 
   useEffect(() => {
     const node = loadMoreRef.current;
@@ -122,7 +122,10 @@ export default function HomePage() {
             Search
             <input
               className="mt-2 w-full rounded-2xl border border-foreground/15 bg-surface px-3 py-2 text-sm"
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                resetPagination();
+              }}
               placeholder="Hotel name or keyword"
               value={search}
             />
@@ -132,7 +135,10 @@ export default function HomePage() {
             City
             <input
               className="mt-2 w-full rounded-2xl border border-foreground/15 bg-surface px-3 py-2 text-sm"
-              onChange={(event) => setCity(event.target.value)}
+              onChange={(event) => {
+                setCity(event.target.value);
+                resetPagination();
+              }}
               placeholder="City"
               value={city}
             />
@@ -142,7 +148,10 @@ export default function HomePage() {
             Minimum rating
             <select
               className="mt-2 w-full rounded-2xl border border-foreground/15 bg-surface px-3 py-2 text-sm"
-              onChange={(event) => setRatingFilter(Number(event.target.value))}
+              onChange={(event) => {
+                setRatingFilter(Number(event.target.value));
+                resetPagination();
+              }}
               value={ratingFilter}
             >
               <option value={0}>All ratings</option>
@@ -158,7 +167,10 @@ export default function HomePage() {
               className="mt-2 w-full"
               max={600}
               min={50}
-              onChange={(event) => setPrice(Number(event.target.value))}
+              onChange={(event) => {
+                setPrice(Number(event.target.value));
+                resetPagination();
+              }}
               step={10}
               type="range"
               value={price}
