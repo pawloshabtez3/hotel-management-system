@@ -31,6 +31,7 @@ export class BookingsService {
         room: {
           select: {
             id: true,
+            status: true,
             hotel: { select: { adminId: true } },
           },
         },
@@ -286,6 +287,10 @@ export class BookingsService {
       throw new BadRequestException('Cannot check in a cancelled booking');
     }
 
+    if (booking.room.status !== RoomStatus.RESERVED) {
+      throw new BadRequestException('Room must be reserved before check-in');
+    }
+
     const updated = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: BookingStatus.CONFIRMED },
@@ -313,6 +318,14 @@ export class BookingsService {
     bookingId: string;
   }) {
     const booking = await this.ensureAdminOwnsBooking(adminId, bookingId);
+
+    if (booking.status === BookingStatus.CANCELLED) {
+      throw new BadRequestException('Cannot check out a cancelled booking');
+    }
+
+    if (booking.room.status !== RoomStatus.OCCUPIED) {
+      throw new BadRequestException('Room must be occupied before check-out');
+    }
 
     const updated = await this.prisma.booking.update({
       where: { id: bookingId },
