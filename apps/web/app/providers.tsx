@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { queryClient } from "./lib/query-client";
 import { connectSocket, disconnectSocket } from "./lib/socket-client";
 import { useAuthStore } from "./stores/auth-store";
+import { ToastViewport } from "./components/toast-viewport";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const status = useAuthStore((state) => state.status);
@@ -32,5 +33,10 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     disconnectSocket();
   }, [status]);
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <ToastViewport />
+    </QueryClientProvider>
+  );
 }
