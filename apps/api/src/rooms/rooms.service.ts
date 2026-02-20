@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -16,8 +17,23 @@ export class RoomsService {
     private readonly redis: RedisService,
   ) {}
 
+  private async ensureAdminOwnsHotel(adminId: string, hotelId: string) {
+    const hotel = await this.prisma.hotel.findUnique({
+      where: { id: hotelId },
+      select: { id: true, adminId: true },
+    });
+
+    if (!hotel) {
+      throw new NotFoundException('Hotel not found');
+    }
+
+    if (!hotel.adminId || hotel.adminId !== adminId) {
+      throw new ForbiddenException('Not allowed to manage this hotel');
+    }
+  }
+
   async getAdminRooms(adminId: string, hotelId?: string) {
-    return this.prisma.room.findMany({
+    const rooms = await this.prisma.room.findMany({
       where: {
         hotel: {
           adminId,
@@ -41,10 +57,50 @@ export class RoomsService {
         },
       },
     });
+
+    return rooms.map((room) => ({
+      ...room,
+      roomNumber: room.id.slice(0, 8).toUpperCase(),
+    }));
   }
 
   async getAdminRoomStats(adminId: string, hotelId?: string) {
     const rooms = await this.getAdminRooms(adminId, hotelId);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(startOfToday);
+    endOfToday.setDate(endOfToday.getDate() + 1);
+
+    const [todayCheckIns, todayCheckOuts] = await Promise.all([
+      this.prisma.booking.count({
+        where: {
+          room: {
+            hotel: {
+              adminId,
+              ...(hotelId ? { id: hotelId } : {}),
+            },
+          },
+          checkIn: {
+            gte: startOfToday,
+            lt: endOfToday,
+          },
+        },
+      }),
+      this.prisma.booking.count({
+        where: {
+          room: {
+            hotel: {
+              adminId,
+              ...(hotelId ? { id: hotelId } : {}),
+            },
+          },
+          checkOut: {
+            gte: startOfToday,
+            lt: endOfToday,
+          },
+        },
+      }),
+    ]);
 
     const totals = {
       total: rooms.length,
@@ -67,7 +123,112 @@ export class RoomsService {
         ? 0
         : Number((((totals.reserved + totals.occupied) / totals.total) * 100).toFixed(1));
 
-    return totals;
+    return {
+      ...totals,
+      todayCheckIns,
+      todayCheckOuts,
+    };
+  }
+
+  async createAdminRoom({
+    adminId,
+    hotelId,
+    type,
+    pricePerNight,
+    status,
+  }: {
+    adminId: string;
+    hotelId: string;
+    type: string;
+    pricePerNight: number;
+    status: RoomStatus;
+  }) {
+    if (pricePerNight <= 0) {
+      throw new BadRequestException('pricePerNight must be positive');
+    }
+
+    await this.ensureAdminOwnsHotel(adminId, hotelId);
+
+    const created = await this.prisma.room.create({
+      data: {
+        hotelId,
+        type,
+        pricePerNight,
+        status,
+      },
+      select: {
+        id: true,
+        hotelId: true,
+        type: true,
+        status: true,
+        pricePerNight: true,
+      },
+    });
+
+    this.gateway.notifyRoomUpdate(created.id, created.status, created.hotelId);
+    await this.redis.delByPrefix('hotels:detail:');
+    await this.redis.delByPrefix('hotels:list:');
+
+    return created;
+  }
+
+  async updateAdminRoom({
+    roomId,
+    adminId,
+    type,
+    pricePerNight,
+    status,
+  }: {
+    roomId: string;
+    adminId: string;
+    type?: string;
+    pricePerNight?: number;
+    status?: RoomStatus;
+  }) {
+    const room = await this.prisma.room.findUnique({
+      where: { id: roomId },
+      select: {
+        id: true,
+        hotelId: true,
+        hotel: {
+          select: { adminId: true },
+        },
+      },
+    });
+
+    if (!room) {
+      throw new NotFoundException('Room not found');
+    }
+
+    if (!room.hotel?.adminId || room.hotel.adminId !== adminId) {
+      throw new ForbiddenException('Not allowed to manage this room');
+    }
+
+    if (pricePerNight !== undefined && pricePerNight <= 0) {
+      throw new BadRequestException('pricePerNight must be positive');
+    }
+
+    const updated = await this.prisma.room.update({
+      where: { id: roomId },
+      data: {
+        ...(type !== undefined ? { type } : {}),
+        ...(pricePerNight !== undefined ? { pricePerNight } : {}),
+        ...(status !== undefined ? { status } : {}),
+      },
+      select: {
+        id: true,
+        hotelId: true,
+        type: true,
+        status: true,
+        pricePerNight: true,
+      },
+    });
+
+    this.gateway.notifyRoomUpdate(updated.id, updated.status, updated.hotelId);
+    await this.redis.delByPrefix('hotels:detail:');
+    await this.redis.delByPrefix('hotels:list:');
+
+    return updated;
   }
 
   async updateRoomStatus({

@@ -5,9 +5,18 @@ import {
   NotFoundException,
   Param,
   Query,
+  Body,
+  Put,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { HotelsService } from './hotels.service';
 import { z } from 'zod';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 const listQuerySchema = z
   .object({
@@ -27,6 +36,15 @@ const detailQuerySchema = z
   })
   .passthrough();
 
+const updateAdminSettingsSchema = z.object({
+  hotelName: z.string().min(1).optional(),
+  location: z.string().min(1).optional(),
+  city: z.string().min(1).optional(),
+  country: z.string().min(1).optional(),
+  roomTypes: z.array(z.string().min(1)).optional(),
+  allowPayLater: z.boolean().optional(),
+});
+
 @Controller('hotels')
 export class HotelsController {
   constructor(private readonly hotelsService: HotelsService) {}
@@ -45,6 +63,31 @@ export class HotelsController {
       minPrice: parsed.minPrice,
       maxPrice,
     });
+  }
+
+  @Get('admin/settings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  async getAdminSettings(@Req() req: Request) {
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.hotelsService.getAdminSettings(user.id);
+  }
+
+  @Put('admin/settings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  async updateAdminSettings(@Req() req: Request, @Body() body: unknown) {
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    const parsed = updateAdminSettingsSchema.parse(body);
+    return this.hotelsService.updateAdminSettings(user.id, parsed);
   }
 
   @Get(':id')

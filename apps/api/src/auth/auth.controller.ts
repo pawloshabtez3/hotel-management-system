@@ -24,6 +24,11 @@ const verifyOtpSchema = z.object({
   code: z.string().regex(/^\d{6}$/),
 });
 
+const adminLoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -40,6 +45,13 @@ export class AuthController {
   async verifyOtp(@Body() body: unknown) {
     const { email, code } = verifyOtpSchema.parse(body);
     return this.authService.verifyOtp({ email, code });
+  }
+
+  @Post('admin/login')
+  @HttpCode(200)
+  async adminLogin(@Body() body: unknown) {
+    const { email, password } = adminLoginSchema.parse(body);
+    return this.authService.adminLogin({ email, password });
   }
 
   @Get('me')

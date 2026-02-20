@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   Logger,
 } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
@@ -162,6 +163,49 @@ export class AuthService {
         data: { email },
         select: { id: true, email: true, role: true },
       }));
+
+    const accessToken = await this.jwt.signAsync({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return {
+      accessToken,
+      tokenType: 'Bearer',
+      user,
+    };
+  }
+
+  async adminLogin(input: { email: string; password: string }) {
+    const email = this.normalizeEmail(input.email);
+    const password = input.password;
+
+    const configuredEmail = this.normalizeEmail(
+      process.env.ADMIN_EMAIL ?? 'admin@harborstay.local',
+    );
+    const configuredPassword = process.env.ADMIN_PASSWORD ?? 'admin123';
+
+    if (email !== configuredEmail || password !== configuredPassword) {
+      throw new UnauthorizedException('Invalid admin credentials');
+    }
+
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email },
+      select: { id: true, email: true, role: true },
+    });
+
+    const user =
+      existingUser
+        ? await this.prisma.user.update({
+            where: { id: existingUser.id },
+            data: { role: Role.ROOM_ADMIN },
+            select: { id: true, email: true, role: true },
+          })
+        : await this.prisma.user.create({
+            data: { email, role: Role.ROOM_ADMIN },
+            select: { id: true, email: true, role: true },
+          });
 
     const accessToken = await this.jwt.signAsync({
       sub: user.id,

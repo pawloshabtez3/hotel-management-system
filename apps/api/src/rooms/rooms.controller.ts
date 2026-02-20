@@ -3,7 +3,9 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Param,
+  Post,
   Query,
   Put,
   Req,
@@ -17,9 +19,38 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role, RoomStatus } from '@prisma/client';
 import { RoomsService } from './rooms.service';
 
+const adminRoomStatusSchema = z.enum([
+  'AVAILABLE',
+  'RESERVED',
+  'OCCUPIED',
+  'UNAVAILABLE',
+  'MAINTENANCE',
+]);
+
 const updateRoomStatusSchema = z.object({
-  status: z.nativeEnum(RoomStatus),
+  status: adminRoomStatusSchema,
 });
+
+const createRoomSchema = z.object({
+  hotelId: z.string().uuid(),
+  type: z.string().min(1),
+  pricePerNight: z.coerce.number().positive(),
+  status: adminRoomStatusSchema.optional(),
+});
+
+const updateRoomSchema = z.object({
+  type: z.string().min(1).optional(),
+  pricePerNight: z.coerce.number().positive().optional(),
+  status: adminRoomStatusSchema.optional(),
+});
+
+function normalizeRoomStatus(status: z.infer<typeof adminRoomStatusSchema>): RoomStatus {
+  if (status === 'MAINTENANCE') {
+    return RoomStatus.UNAVAILABLE;
+  }
+
+  return status as RoomStatus;
+}
 
 @Controller('rooms')
 export class RoomsController {
@@ -49,6 +80,48 @@ export class RoomsController {
     return this.roomsService.getAdminRooms(user.id, hotelId);
   }
 
+  @Post('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  async createRoom(@Req() req: Request, @Body() body: unknown) {
+    const parsed = createRoomSchema.parse(body);
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.roomsService.createAdminRoom({
+      adminId: user.id,
+      hotelId: parsed.hotelId,
+      type: parsed.type,
+      pricePerNight: parsed.pricePerNight,
+      status: normalizeRoomStatus(parsed.status ?? 'AVAILABLE'),
+    });
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  async updateRoom(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    const parsed = updateRoomSchema.parse(body);
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.roomsService.updateAdminRoom({
+      roomId: id,
+      adminId: user.id,
+      type: parsed.type,
+      pricePerNight: parsed.pricePerNight,
+      status: parsed.status ? normalizeRoomStatus(parsed.status) : undefined,
+    });
+  }
+
   @Put(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ROOM_ADMIN)
@@ -66,7 +139,7 @@ export class RoomsController {
     return this.roomsService.updateRoomStatus({
       roomId: id,
       adminId: user.id,
-      status,
+      status: normalizeRoomStatus(status),
     });
   }
 }

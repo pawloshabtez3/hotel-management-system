@@ -34,6 +34,8 @@ const envSchema = z.object({
   SMTP_PASS: optionalNonEmptyString,
   SMTP_FROM_EMAIL: optionalEmail,
   APP_NAME: optionalNonEmptyString,
+  ADMIN_EMAIL: optionalEmail,
+  ADMIN_PASSWORD: optionalNonEmptyString,
   NODE_ENV: z.enum(["development", "test", "production"]).optional(),
   PORT: z.coerce.number().int().positive().optional(),
 });
