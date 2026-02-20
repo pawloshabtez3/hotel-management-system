@@ -10,6 +10,7 @@ type AuthState = {
   status: "idle" | "loading" | "authenticated";
   otpStatus: "idle" | "sending" | "verifying";
   setAuth: (user: AuthUser, token: string) => void;
+  setToken: (token: string) => void;
   setPendingEmail: (email: string | null) => void;
   setStatus: (status: AuthState["status"]) => void;
   setOtpStatus: (status: AuthState["otpStatus"]) => void;
@@ -30,6 +31,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       otpStatus: "idle",
       status: "authenticated",
     }),
+  setToken: (token) =>
+    set((state) => ({
+      token,
+      status: state.user ? "authenticated" : state.status,
+    })),
   setPendingEmail: (email) => set({ pendingEmail: email }),
   setStatus: (status) => set({ status }),
   setOtpStatus: (otpStatus) => set({ otpStatus }),
