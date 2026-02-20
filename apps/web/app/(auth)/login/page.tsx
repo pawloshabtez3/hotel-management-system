@@ -71,11 +71,22 @@ function LoginContent() {
       setMessage(null);
       setOtpStatus("sending");
     },
-    onSuccess: () => {
+    onSuccess: (payload) => {
       const normalized = normalizeEmail(email);
       setPendingEmail(normalized);
-      setCooldown(OTP_RESEND_COOLDOWN_SECONDS);
-      setMessage("If this email is valid, a one-time code has been sent.");
+
+      if (payload.emailSent) {
+        setCooldown(OTP_RESEND_COOLDOWN_SECONDS);
+        setMessage("If this email is valid, a one-time code has been sent.");
+      } else {
+        setCooldown(0);
+        if (payload.devOtp) {
+          setMessage(`Email delivery is unavailable in development. Use OTP: ${payload.devOtp}`);
+        } else {
+          setErrorMessage("Unable to send email code right now. Please try again shortly.");
+        }
+      }
+
       setOtpStatus("idle");
     },
     onError: (error) => {
