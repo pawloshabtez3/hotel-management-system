@@ -68,13 +68,13 @@ export default function HotelDetailPage() {
   return (
     <div className="flex flex-col gap-5">
       {hotelQuery.isLoading ? (
-        <div className="rounded-2xl border border-foreground/10 bg-surface px-4 py-6 text-sm text-foreground/70">
+        <div className="panel rounded-2xl px-4 py-6 text-sm text-foreground/70">
           Loading hotel details...
         </div>
       ) : null}
 
       {hotelQuery.isError ? (
-        <div className="rounded-2xl border border-foreground/10 bg-surface px-4 py-6 text-sm text-accent-strong">
+        <div className="panel rounded-2xl px-4 py-6 text-sm text-accent-strong">
           {toApiErrorMessage(hotelQuery.error)}
         </div>
       ) : null}
@@ -87,15 +87,15 @@ export default function HotelDetailPage() {
             resyncQueryKeys={[["hotel", params.id, checkIn, checkOut]]}
           />
 
-          <section className="rounded-3xl border border-foreground/10 bg-surface p-5 shadow-sm md:p-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-sage">{hotelQuery.data.city}</p>
-            <h1 className="mt-1 text-3xl font-semibold text-foreground">{hotelQuery.data.name}</h1>
+          <section className="glass-card rounded-3xl p-5 md:p-6">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-sage">{hotelQuery.data.city}</p>
+            <h1 className="mt-1 text-3xl font-semibold text-foreground md:text-4xl">{hotelQuery.data.name}</h1>
             <p className="mt-2 text-sm text-foreground/70">{hotelQuery.data.description ?? "No description available."}</p>
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               {getImageUrls(hotelQuery.data.id).map((url) => (
                 <Image
                   alt={hotelQuery.data?.name}
-                  className="h-44 w-full rounded-2xl object-cover"
+                  className="h-44 w-full rounded-2xl object-cover shadow-sm"
                   height={600}
                   key={url}
                   src={url}
@@ -105,12 +105,12 @@ export default function HotelDetailPage() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-foreground/10 bg-surface p-5 shadow-sm">
+          <section className="panel rounded-3xl p-5">
             <div className="grid gap-4 md:grid-cols-2">
               <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
                 Check-in
                 <input
-                  className="mt-2 w-full rounded-2xl border border-foreground/15 px-3 py-2 text-sm"
+                  className="input-base mt-2"
                   onChange={(event) => setCheckIn(event.target.value)}
                   type="date"
                   value={checkIn}
@@ -119,7 +119,7 @@ export default function HotelDetailPage() {
               <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
                 Check-out
                 <input
-                  className="mt-2 w-full rounded-2xl border border-foreground/15 px-3 py-2 text-sm"
+                  className="input-base mt-2"
                   onChange={(event) => setCheckOut(event.target.value)}
                   type="date"
                   value={checkOut}
@@ -138,8 +138,8 @@ export default function HotelDetailPage() {
                 <button
                   className={`rounded-2xl border px-4 py-4 text-left ${
                     selected
-                      ? "border-forest bg-surface-muted"
-                      : "border-foreground/10 bg-surface"
+                      ? "border-accent bg-mist"
+                      : "border-foreground/10 bg-surface hover:bg-surface-muted"
                   }`}
                   key={room.id}
                   onClick={() => setSelectedRoomId(room.id)}
@@ -162,13 +162,13 @@ export default function HotelDetailPage() {
             })}
 
             {hotelQuery.data.rooms.length === 0 ? (
-              <div className="rounded-2xl border border-foreground/10 bg-surface px-4 py-6 text-sm text-foreground/70">
+              <div className="panel rounded-2xl px-4 py-6 text-sm text-foreground/70">
                 No available rooms for selected dates.
               </div>
             ) : null}
           </section>
 
-          <section className="rounded-3xl border border-foreground/10 bg-surface p-5 shadow-sm">
+          <section className="panel rounded-3xl p-5">
             <h2 className="text-lg font-semibold text-foreground">Booking summary</h2>
             <p className="mt-2 text-sm text-foreground/70">
               {selectedRoom
@@ -176,7 +176,7 @@ export default function HotelDetailPage() {
                 : "Select a room to continue."}
             </p>
             <button
-              className="mt-4 rounded-full bg-forest px-5 py-3 text-sm font-semibold text-surface disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-primary mt-4 px-5 py-3 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!selectedRoom || !checkIn || !checkOut}
               onClick={onContinue}
               type="button"

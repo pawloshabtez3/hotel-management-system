@@ -98,7 +98,7 @@ function AdminPageContent() {
 
   if (user?.role !== "ROOM_ADMIN") {
     return (
-      <div className="rounded-3xl border border-foreground/10 bg-surface p-6 text-sm text-foreground/70">
+      <div className="panel rounded-3xl p-6 text-sm text-foreground/70">
         This page is available to room admins only.
       </div>
     );
@@ -107,8 +107,8 @@ function AdminPageContent() {
   return (
     <div className="flex flex-col gap-5 pb-28 md:pb-6">
       <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-sage">Admin</p>
-        <h1 className="mt-2 text-3xl font-semibold text-foreground">Room Operations</h1>
+        <p className="text-[11px] uppercase tracking-[0.24em] text-sage">Admin</p>
+        <h1 className="mt-2 text-3xl font-semibold text-foreground md:text-4xl">Room Operations</h1>
       </div>
 
       <RoomUpdatesListener
@@ -127,12 +127,12 @@ function AdminPageContent() {
       ) : null}
 
       {statsQuery.isError ? (
-        <p className="rounded-2xl border border-foreground/10 bg-surface px-4 py-3 text-sm text-accent-strong">
+        <p className="panel rounded-2xl px-4 py-3 text-sm text-accent-strong">
           {toApiErrorMessage(statsQuery.error)}
         </p>
       ) : null}
 
-      <section className="rounded-3xl border border-foreground/10 bg-surface p-4 md:p-5">
+      <section className="panel rounded-3xl p-4 md:p-5">
         <h2 className="text-lg font-semibold text-foreground">Room status grid</h2>
         <p className="mt-1 text-sm text-foreground/70">Tap a room to manage status quickly.</p>
 
@@ -141,14 +141,14 @@ function AdminPageContent() {
             <button
               className={`rounded-2xl border px-4 py-4 text-left ${
                 room.id === selectedRoomId
-                  ? "border-forest bg-surface-muted"
-                  : "border-foreground/10 bg-surface"
+                  ? "border-accent bg-mist"
+                  : "border-foreground/10 bg-surface hover:bg-surface-muted"
               }`}
               key={room.id}
               onClick={() => setSelectedRoomId(room.id)}
               type="button"
             >
-              <p className="text-xs uppercase tracking-[0.2em] text-sage">{room.hotel.name}</p>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-sage">{room.hotel.name}</p>
               <p className="mt-1 text-base font-semibold text-foreground">{room.type}</p>
               <p className="mt-1 text-sm text-foreground/70">{room.hotel.city}</p>
               <p className="mt-2 text-xs font-semibold text-foreground/70">Status: {room.status}</p>
@@ -157,24 +157,24 @@ function AdminPageContent() {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-foreground/10 bg-surface p-4 md:p-5">
+      <section className="panel rounded-3xl p-4 md:p-5">
         <h2 className="text-lg font-semibold text-foreground">Check-in / Check-out</h2>
         <div className="mt-3 grid gap-3">
           {(bookingsQuery.data ?? []).slice(0, 8).map((booking) => (
-            <article className="rounded-2xl border border-foreground/10 bg-surface-muted px-4 py-3" key={booking.id}>
-              <p className="text-xs uppercase tracking-[0.2em] text-sage">Booking {booking.id.slice(0, 8)}</p>
+            <article className="panel-soft rounded-2xl px-4 py-3" key={booking.id}>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-sage">Booking {booking.id.slice(0, 8)}</p>
               <p className="mt-1 text-sm text-foreground/70">Guest: {booking.user?.email ?? "N/A"}</p>
               <p className="text-sm text-foreground/70">Room: {booking.room?.type ?? booking.roomId.slice(0, 8)}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
-                  className="rounded-full border border-foreground/15 px-4 py-2 text-sm font-semibold"
+                  className="btn-secondary px-4 py-2"
                   onClick={() => checkInMutation.mutate(booking.id)}
                   type="button"
                 >
                   Check in
                 </button>
                 <button
-                  className="rounded-full border border-foreground/15 px-4 py-2 text-sm font-semibold"
+                  className="btn-secondary px-4 py-2"
                   onClick={() => checkOutMutation.mutate(booking.id)}
                   type="button"
                 >
@@ -186,16 +186,16 @@ function AdminPageContent() {
         </div>
       </section>
 
-      {message ? <p className="text-sm text-forest">{message}</p> : null}
+      {message ? <p className="text-sm font-semibold text-accent-strong">{message}</p> : null}
 
       {selectedRoom ? (
-        <section className="fixed inset-x-0 bottom-0 z-40 border-t border-foreground/10 bg-surface px-4 py-4 md:static md:rounded-3xl md:border md:px-5">
-          <p className="text-xs uppercase tracking-[0.2em] text-sage">Selected room</p>
+        <section className="fixed inset-x-0 bottom-0 z-40 border-t border-foreground/10 bg-surface px-4 py-4 md:static md:rounded-3xl md:border md:border-foreground/10 md:bg-surface md:px-5">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-sage">Selected room</p>
           <p className="mt-1 text-sm font-semibold text-foreground">{selectedRoom.hotel.name} • {selectedRoom.type}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {STATUS_OPTIONS.map((option) => (
               <button
-                className="min-h-11 rounded-full border border-foreground/15 px-4 text-sm font-semibold"
+                className="btn-secondary min-h-11 px-4"
                 key={option.value}
                 onClick={() =>
                   updateStatusMutation.mutate({
@@ -217,8 +217,8 @@ function AdminPageContent() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <article className="rounded-2xl border border-foreground/10 bg-surface px-4 py-4">
-      <p className="text-xs uppercase tracking-[0.2em] text-sage">{label}</p>
+    <article className="panel rounded-2xl px-4 py-4">
+      <p className="text-[11px] uppercase tracking-[0.2em] text-sage">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
     </article>
   );
