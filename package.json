@@ -6,6 +6,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "turbo run dev --parallel",
+    "dev:api": "npm --workspace api run start:dev",
+    "dev:web": "npm --workspace web run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
