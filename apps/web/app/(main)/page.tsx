@@ -1,3 +1,5 @@
+import { BookingGateButton } from "@/app/components/booking-gate-button";
+
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-12">
@@ -56,9 +58,9 @@ export default function HomePage() {
             <p className="mt-2 text-sm text-foreground/70">
               Deluxe suite with breakfast included
             </p>
-            <button className="mt-6 w-full rounded-full bg-accent px-4 py-2 text-sm font-semibold text-surface">
-              Reserve a room
-            </button>
+            <div className="mt-6">
+              <BookingGateButton />
+            </div>
           </div>
         </div>
       </section>
