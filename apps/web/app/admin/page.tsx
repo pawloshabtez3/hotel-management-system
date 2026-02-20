@@ -78,6 +78,9 @@ function AdminPageContent() {
 
   const checkInMutation = useMutation({
     mutationFn: (bookingId: string) => checkInBooking(bookingId),
+    onError: (error) => {
+      setMessage(toApiErrorMessage(error));
+    },
     onSuccess: () => {
       setMessage("Guest checked in successfully.");
       void queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
@@ -88,6 +91,9 @@ function AdminPageContent() {
 
   const checkOutMutation = useMutation({
     mutationFn: (bookingId: string) => checkOutBooking(bookingId),
+    onError: (error) => {
+      setMessage(toApiErrorMessage(error));
+    },
     onSuccess: () => {
       setMessage("Guest checked out successfully.");
       void queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
@@ -160,21 +166,28 @@ function AdminPageContent() {
       <section className="panel rounded-3xl p-4 md:p-5">
         <h2 className="text-lg font-semibold text-foreground">Check-in / Check-out</h2>
         <div className="mt-3 grid gap-3">
-          {(bookingsQuery.data ?? []).slice(0, 8).map((booking) => (
+          {(bookingsQuery.data ?? []).slice(0, 8).map((booking) => {
+            const canCheckIn = booking.status !== "CANCELLED" && booking.room?.status === "RESERVED";
+            const canCheckOut = booking.status !== "CANCELLED" && booking.room?.status === "OCCUPIED";
+
+            return (
             <article className="panel-soft rounded-2xl px-4 py-3" key={booking.id}>
               <p className="text-[11px] uppercase tracking-[0.2em] text-sage">Booking {booking.id.slice(0, 8)}</p>
               <p className="mt-1 text-sm text-foreground/70">Guest: {booking.user?.email ?? "N/A"}</p>
               <p className="text-sm text-foreground/70">Room: {booking.room?.type ?? booking.roomId.slice(0, 8)}</p>
+              <p className="text-xs text-foreground/60">Booking: {booking.status} • Room: {booking.room?.status ?? "UNKNOWN"}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
-                  className="btn-secondary px-4 py-2"
+                  className="btn-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!canCheckIn || checkInMutation.isPending}
                   onClick={() => checkInMutation.mutate(booking.id)}
                   type="button"
                 >
                   Check in
                 </button>
                 <button
-                  className="btn-secondary px-4 py-2"
+                  className="btn-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!canCheckOut || checkOutMutation.isPending}
                   onClick={() => checkOutMutation.mutate(booking.id)}
                   type="button"
                 >
@@ -182,7 +195,8 @@ function AdminPageContent() {
                 </button>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 
