@@ -14,7 +14,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[30vh] items-center justify-center text-sm text-foreground/70">
+        <div className="panel flex min-h-[30vh] items-center justify-center rounded-2xl text-sm text-foreground/70">
           Loading login...
         </div>
       }
@@ -145,8 +145,8 @@ function LoginContent() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-sage">Secure access</p>
-        <h1 className="mt-2 text-3xl font-semibold text-foreground">Sign in with email OTP</h1>
+        <p className="text-[11px] uppercase tracking-[0.3em] text-sage">Secure access</p>
+        <h1 className="mt-2 text-3xl font-semibold text-foreground md:text-4xl">Sign in with email OTP</h1>
         <p className="mt-2 text-sm text-foreground/70">
           Authentication is requested only when you start a booking.
         </p>
@@ -156,7 +156,7 @@ function LoginContent() {
         <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
           Email
           <input
-            className="mt-2 w-full rounded-2xl border border-foreground/15 px-4 py-3 text-sm"
+            className="input-base mt-2"
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com"
             type="email"
@@ -165,7 +165,7 @@ function LoginContent() {
         </label>
 
         <button
-          className="rounded-full border border-foreground/15 px-6 py-3 text-sm font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn-secondary px-6 py-3 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!canSendOtp || sendOtpMutation.isPending}
           onClick={onSendCode}
           type="button"
@@ -180,7 +180,7 @@ function LoginContent() {
         <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60">
           OTP code
           <input
-            className="mt-2 w-full rounded-2xl border border-foreground/15 px-4 py-3 text-sm"
+            className="input-base mt-2"
             inputMode="numeric"
             maxLength={6}
             onChange={(event) => setOtp(event.target.value.replace(/\D/g, ""))}
@@ -191,7 +191,7 @@ function LoginContent() {
         </label>
 
         <button
-          className="mt-2 rounded-full bg-forest px-6 py-3 text-sm font-semibold text-surface disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn-primary mt-2 px-6 py-3 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!canVerify || verifyOtpMutation.isPending}
           type="submit"
         >
@@ -199,13 +199,13 @@ function LoginContent() {
         </button>
       </form>
 
-      <div className="rounded-2xl border border-foreground/10 bg-surface-muted px-4 py-3 text-xs text-foreground/70">
+      <div className="panel-soft rounded-2xl px-4 py-3 text-xs text-foreground/70">
         {pendingEmail
           ? `Code sent to ${maskEmail(pendingEmail)} (expires shortly).`
           : "For privacy, we use generic auth responses and do not disclose account status."}
       </div>
 
-      {message ? <p className="text-sm text-forest">{message}</p> : null}
+      {message ? <p className="text-sm font-semibold text-accent-strong">{message}</p> : null}
       {errorMessage ? <p className="text-sm text-accent-strong">{errorMessage}</p> : null}
     </div>
   );
