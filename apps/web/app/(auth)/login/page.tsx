@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { sendOtp, verifyOtp } from "@/app/lib/auth-api";
@@ -11,6 +11,20 @@ import { toApiErrorMessage } from "@/app/lib/api-client";
 import { useAuthStore } from "@/app/stores/auth-store";
 
 export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[30vh] items-center justify-center text-sm text-foreground/70">
+          Loading login...
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
