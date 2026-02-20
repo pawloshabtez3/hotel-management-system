@@ -19,6 +19,7 @@ export type VerifyOtpResponse = {
 export type SendOtpResponse = {
   ok: boolean;
   ttlSeconds: number;
+  emailSent: boolean;
   devOtp?: string;
 };
 
