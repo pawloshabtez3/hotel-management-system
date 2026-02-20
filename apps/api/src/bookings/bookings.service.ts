@@ -11,12 +11,18 @@ import {
   RoomStatus,
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { RoomsGateway } from '../realtime/rooms.gateway';
+import { RedisService } from '../redis/redis.service';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gateway: RoomsGateway,
+    private readonly redis: RedisService,
+  ) {}
 
   private async ensureAdminOwnsBooking(adminId: string, bookingId: string) {
     const booking = await this.prisma.booking.findUnique({
@@ -52,11 +58,16 @@ export class BookingsService {
     });
 
     if (!hasActiveBookings) {
-      await this.prisma.room.update({
+      const room = await this.prisma.room.update({
         where: { id: roomId },
         data: { status: RoomStatus.AVAILABLE },
+        select: { id: true, status: true, hotelId: true },
       });
+      this.gateway.notifyRoomUpdate(room.id, room.status, room.hotelId);
     }
+
+    await this.redis.delByPrefix('hotels:detail:');
+    await this.redis.delByPrefix('hotels:list:');
   }
 
   async createBooking({
@@ -83,12 +94,12 @@ export class BookingsService {
       throw new BadRequestException('Booking must be at least 1 night');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const booking = await this.prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT 1 FROM "Room" WHERE id = ${roomId} FOR UPDATE`;
 
       const room = await tx.room.findUnique({
         where: { id: roomId },
-        select: { id: true, pricePerNight: true, status: true },
+        select: { id: true, hotelId: true, pricePerNight: true, status: true },
       });
 
       if (!room) {
@@ -136,6 +147,17 @@ export class BookingsService {
 
       return booking;
     });
+
+    const roomForEvent = await this.prisma.room.findUnique({
+      where: { id: roomId },
+      select: { id: true, hotelId: true },
+    });
+
+    this.gateway.notifyRoomUpdate(roomId, RoomStatus.RESERVED, roomForEvent?.hotelId);
+    await this.redis.delByPrefix('hotels:detail:');
+    await this.redis.delByPrefix('hotels:list:');
+
+    return booking;
   }
 
   async getUserBookings(userId: string) {
@@ -249,6 +271,66 @@ export class BookingsService {
     }
 
     return updated;
+  }
+
+  async checkInBooking({
+    adminId,
+    bookingId,
+  }: {
+    adminId: string;
+    bookingId: string;
+  }) {
+    const booking = await this.ensureAdminOwnsBooking(adminId, bookingId);
+
+    if (booking.status === BookingStatus.CANCELLED) {
+      throw new BadRequestException('Cannot check in a cancelled booking');
+    }
+
+    const updated = await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.CONFIRMED },
+      select: { id: true, roomId: true, status: true },
+    });
+
+    const room = await this.prisma.room.update({
+      where: { id: updated.roomId },
+      data: { status: RoomStatus.OCCUPIED },
+      select: { id: true, status: true, hotelId: true },
+    });
+
+    this.gateway.notifyRoomUpdate(room.id, room.status, room.hotelId);
+    await this.redis.delByPrefix('hotels:detail:');
+    await this.redis.delByPrefix('hotels:list:');
+
+    return { booking: updated, room };
+  }
+
+  async checkOutBooking({
+    adminId,
+    bookingId,
+  }: {
+    adminId: string;
+    bookingId: string;
+  }) {
+    const booking = await this.ensureAdminOwnsBooking(adminId, bookingId);
+
+    const updated = await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.CONFIRMED },
+      select: { id: true, roomId: true, status: true },
+    });
+
+    const room = await this.prisma.room.update({
+      where: { id: booking.roomId },
+      data: { status: RoomStatus.AVAILABLE },
+      select: { id: true, status: true, hotelId: true },
+    });
+
+    this.gateway.notifyRoomUpdate(room.id, room.status, room.hotelId);
+    await this.redis.delByPrefix('hotels:detail:');
+    await this.redis.delByPrefix('hotels:list:');
+
+    return { booking: updated, room };
   }
 
   async deleteAdminBooking({

@@ -120,6 +120,36 @@ export class BookingsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ROOM_ADMIN)
+  @Post('admin/bookings/:id/check-in')
+  async checkInBooking(@Req() req: Request, @Param('id') id: string) {
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.bookingsService.checkInBooking({
+      adminId: user.id,
+      bookingId: id,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  @Post('admin/bookings/:id/check-out')
+  async checkOutBooking(@Req() req: Request, @Param('id') id: string) {
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.bookingsService.checkOutBooking({
+      adminId: user.id,
+      bookingId: id,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
   @Delete('admin/bookings/:id')
   @HttpCode(200)
   async deleteAdminBooking(@Req() req: Request, @Param('id') id: string) {
