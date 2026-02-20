@@ -1,0 +1,104 @@
+{
+  "recording": [
+    {
+      "at": "2026-02-20T14:39:29.131Z",
+      "step": "setup:fixtures_created",
+      "details": {
+        "adminUserId": "ccde2b39-de8b-4d05-8cb3-e5bf3d2fe388",
+        "foreignAdminUserId": "bdb7c7a4-310b-47b3-8362-c52a1fe6c767",
+        "adminRoomId": "128a2e5d-3715-401f-b9cd-869bf0889e29",
+        "foreignRoomId": "c76ba4d4-771c-44fb-bc59-dcdc8d014b77",
+        "baseUrl": "http://127.0.0.1:59099"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:29.178Z",
+      "step": "e2e:otp_sent",
+      "details": {
+        "email": "day3-1771598364112-customer@example.com",
+        "otpCode": "649068"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:29.646Z",
+      "step": "e2e:otp_verified",
+      "details": {
+        "customerUserId": "3d6d7bbb-0a7e-422e-9fde-ec8190757803"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:31.215Z",
+      "step": "e2e:booking_created",
+      "details": {
+        "bookingId": "b9ee8ebf-80a7-4ad1-9026-41ab3f4d4ddf",
+        "roomId": "128a2e5d-3715-401f-b9cd-869bf0889e29"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:31.666Z",
+      "step": "e2e:payment_stub_called",
+      "details": {
+        "bookingId": "b9ee8ebf-80a7-4ad1-9026-41ab3f4d4ddf",
+        "paymentIntentId": "stub_b9ee8ebf-80a7-4ad1-9026-41ab3f4d4ddf"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:33.498Z",
+      "step": "admin:get_bookings_ok",
+      "details": {
+        "count": 1
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:34.177Z",
+      "step": "admin:update_own_room_ok",
+      "details": {
+        "roomId": "128a2e5d-3715-401f-b9cd-869bf0889e29",
+        "status": "OCCUPIED"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:34.628Z",
+      "step": "admin:update_foreign_room_forbidden",
+      "details": {
+        "roomId": "c76ba4d4-771c-44fb-bc59-dcdc8d014b77"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:36.001Z",
+      "step": "admin:get_booking_by_id_ok",
+      "details": {
+        "bookingId": "b9ee8ebf-80a7-4ad1-9026-41ab3f4d4ddf"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:36.864Z",
+      "step": "admin:update_booking_status_ok",
+      "details": {
+        "bookingId": "b9ee8ebf-80a7-4ad1-9026-41ab3f4d4ddf",
+        "status": "CONFIRMED"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:38.247Z",
+      "step": "admin:delete_booking_ok",
+      "details": {
+        "bookingId": "b9ee8ebf-80a7-4ad1-9026-41ab3f4d4ddf"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:39.212Z",
+      "step": "realtime:room_update_received",
+      "details": {
+        "roomId": "128a2e5d-3715-401f-b9cd-869bf0889e29",
+        "status": "AVAILABLE",
+        "at": "2026-02-20T14:39:39.206Z",
+        "source": "server"
+      }
+    },
+    {
+      "at": "2026-02-20T14:39:39.215Z",
+      "step": "teardown:start"
+    }
+  ]
+}
