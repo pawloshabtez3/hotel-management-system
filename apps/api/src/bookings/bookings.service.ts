@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -16,6 +17,47 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 @Injectable()
 export class BookingsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private async ensureAdminOwnsBooking(adminId: string, bookingId: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        room: {
+          select: {
+            id: true,
+            hotel: { select: { adminId: true } },
+          },
+        },
+      },
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    if (!booking.room.hotel.adminId || booking.room.hotel.adminId !== adminId) {
+      throw new ForbiddenException('Not allowed to manage this booking');
+    }
+
+    return booking;
+  }
+
+  private async maybeReleaseRoom(roomId: string) {
+    const hasActiveBookings = await this.prisma.booking.findFirst({
+      where: {
+        roomId,
+        status: { in: [BookingStatus.PENDING, BookingStatus.CONFIRMED] },
+      },
+      select: { id: true },
+    });
+
+    if (!hasActiveBookings) {
+      await this.prisma.room.update({
+        where: { id: roomId },
+        data: { status: RoomStatus.AVAILABLE },
+      });
+    }
+  }
 
   async createBooking({
     userId,
@@ -154,7 +196,77 @@ export class BookingsService {
     });
   }
 
-  async createPaymentIntent({
+  async getAdminBookingById({
+    adminId,
+    bookingId,
+  }: {
+    adminId: string;
+    bookingId: string;
+  }) {
+    await this.ensureAdminOwnsBooking(adminId, bookingId);
+
+    return this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        room: {
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            hotel: {
+              select: {
+                id: true,
+                name: true,
+                city: true,
+                country: true,
+              },
+            },
+          },
+        },
+        user: { select: { id: true, email: true } },
+      },
+    });
+  }
+
+  async updateAdminBookingStatus({
+    adminId,
+    bookingId,
+    status,
+  }: {
+    adminId: string;
+    bookingId: string;
+    status: BookingStatus;
+  }) {
+    const booking = await this.ensureAdminOwnsBooking(adminId, bookingId);
+
+    const updated = await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { status },
+    });
+
+    if (status === BookingStatus.CANCELLED) {
+      await this.maybeReleaseRoom(booking.roomId);
+    }
+
+    return updated;
+  }
+
+  async deleteAdminBooking({
+    adminId,
+    bookingId,
+  }: {
+    adminId: string;
+    bookingId: string;
+  }) {
+    const booking = await this.ensureAdminOwnsBooking(adminId, bookingId);
+
+    await this.prisma.booking.delete({ where: { id: bookingId } });
+    await this.maybeReleaseRoom(booking.roomId);
+
+    return { ok: true, deletedId: bookingId };
+  }
+
+  async createPaymentStub({
     bookingId,
     userId,
   }: {
@@ -195,15 +307,15 @@ export class BookingsService {
       amount: Math.round(Number(booking.totalPrice) * 100),
       currency: 'usd',
       stub: true,
-      message: 'Stripe is stubbed; replace with real integration later.',
+      message: 'Payment is stubbed; replace with your gateway integration later.',
     };
   }
 
-  async handleStripeWebhook(_rawBody: Buffer, _signature: string) {
+  async handlePaymentWebhookStub(_rawBody: Buffer, _signature: string) {
     return {
       received: true,
       stub: true,
-      message: 'Stripe webhook is stubbed; replace with real integration later.',
+      message: 'Payment webhook is stubbed; replace with your gateway integration later.',
     };
   }
 }

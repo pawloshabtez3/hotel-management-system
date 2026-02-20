@@ -46,6 +46,10 @@ export class RoomsGateway {
   }
 
   async afterInit() {
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+
     const redisUrl = process.env.REDIS_URL;
     if (!redisUrl) {
       return;

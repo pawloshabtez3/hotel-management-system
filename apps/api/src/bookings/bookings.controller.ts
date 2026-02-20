@@ -2,8 +2,10 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
+  Patch,
   Param,
   Post,
   Req,
@@ -14,7 +16,7 @@ import { z } from 'zod';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '@prisma/client';
+import { BookingStatus, Role } from '@prisma/client';
 import { BookingsService } from './bookings.service';
 
 const createBookingSchema = z.object({
@@ -25,6 +27,14 @@ const createBookingSchema = z.object({
   checkOut: z.string().refine((value) => !Number.isNaN(Date.parse(value)), {
     message: 'checkOut must be a valid ISO date string',
   }),
+});
+
+const updateBookingStatusSchema = z.object({
+  status: z.nativeEnum(BookingStatus),
+});
+
+const paymentStubSchema = z.object({
+  bookingId: z.string().uuid(),
 });
 
 @Controller()
@@ -72,24 +82,91 @@ export class BookingsController {
     return this.bookingsService.getAdminBookings(user.id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  @Get('admin/bookings/:id')
+  async getAdminBookingById(@Req() req: Request, @Param('id') id: string) {
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.bookingsService.getAdminBookingById({
+      adminId: user.id,
+      bookingId: id,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  @Patch('admin/bookings/:id/status')
+  async updateAdminBookingStatus(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    const { status } = updateBookingStatusSchema.parse(body);
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.bookingsService.updateAdminBookingStatus({
+      adminId: user.id,
+      bookingId: id,
+      status,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ROOM_ADMIN)
+  @Delete('admin/bookings/:id')
+  @HttpCode(200)
+  async deleteAdminBooking(@Req() req: Request, @Param('id') id: string) {
+    const user = (req as any).user as { id?: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.bookingsService.deleteAdminBooking({
+      adminId: user.id,
+      bookingId: id,
+    });
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post('bookings/:id/pay')
-  async createPaymentIntent(@Req() req: Request, @Param('id') id: string) {
+  async createPaymentStubByBookingId(@Req() req: Request, @Param('id') id: string) {
     const user = (req as any).user as { id: string } | undefined;
     if (!user?.id) {
       throw new BadRequestException('Missing user');
     }
 
-    return this.bookingsService.createPaymentIntent({
+    return this.bookingsService.createPaymentStub({
       bookingId: id,
       userId: user.id,
     });
   }
 
-  @Post('webhooks/stripe')
+  @UseGuards(JwtAuthGuard)
+  @Post('payments/stub')
+  async createPaymentStub(@Req() req: Request, @Body() body: unknown) {
+    const { bookingId } = paymentStubSchema.parse(body);
+    const user = (req as any).user as { id: string } | undefined;
+    if (!user?.id) {
+      throw new BadRequestException('Missing user');
+    }
+
+    return this.bookingsService.createPaymentStub({
+      bookingId,
+      userId: user.id,
+    });
+  }
+
+  @Post('payments/webhook/stub')
   @HttpCode(200)
-  async handleStripeWebhook(@Req() req: Request) {
+  async handlePaymentWebhookStub(@Req() req: Request) {
     const rawBody = req.body as Buffer;
-    return this.bookingsService.handleStripeWebhook(rawBody, 'stub');
+    return this.bookingsService.handlePaymentWebhookStub(rawBody, 'stub');
   }
 }
