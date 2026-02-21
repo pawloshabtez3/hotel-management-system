@@ -4,14 +4,11 @@ import { FormEvent, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { withAdminRoute } from "@/app/lib/auth/withAdminRoute";
 import { createAdminRoom, getAdminRooms, updateAdminRoom } from "@/app/lib/admin-api";
-import { useAuthStore } from "@/app/stores/auth-store";
 import { useToastStore } from "@/app/stores/toast-store";
 import type { AdminRoomItem } from "@/app/lib/types";
 
 function AdminRoomsPage() {
-  const user = useAuthStore((state) => state.user);
-  const hotelId = user?.hotelId;
-  const pushToast = useToastStore((state) => state.pushToast);
+  const addToast = useToastStore((state) => state.addToast);
   const queryClient = useQueryClient();
 
   const [roomType, setRoomType] = useState("Standard");
@@ -23,7 +20,7 @@ function AdminRoomsPage() {
 
   const roomsQuery = useQuery({
     queryKey: ["admin-rooms"],
-    queryFn: getAdminRooms,
+    queryFn: () => getAdminRooms(),
     refetchInterval: 20_000,
   });
 
@@ -34,9 +31,9 @@ function AdminRoomsPage() {
       await queryClient.invalidateQueries({ queryKey: ["admin-room-stats"] });
       setRoomType("Standard");
       setRoomPrice("100");
-      pushToast({ title: "Room created", variant: "success" });
+      addToast({ title: "Room created", variant: "success" });
     },
-    onError: () => pushToast({ title: "Failed to create room", variant: "error" }),
+    onError: () => addToast({ title: "Failed to create room", variant: "error" }),
   });
 
   const updateMutation = useMutation({
@@ -46,15 +43,16 @@ function AdminRoomsPage() {
       await queryClient.invalidateQueries({ queryKey: ["admin-rooms"] });
       await queryClient.invalidateQueries({ queryKey: ["admin-room-stats"] });
       setEditingRoom(null);
-      pushToast({ title: "Room updated", variant: "success" });
+      addToast({ title: "Room updated", variant: "success" });
     },
-    onError: () => pushToast({ title: "Failed to update room", variant: "error" }),
+    onError: () => addToast({ title: "Failed to update room", variant: "error" }),
   });
 
   function onCreateRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const hotelId = roomsQuery.data?.[0]?.hotelId;
     if (!hotelId) {
-      pushToast({ title: "Admin hotel context missing", variant: "error" });
+      addToast({ title: "Admin hotel context missing", variant: "error" });
       return;
     }
 

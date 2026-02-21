@@ -3,18 +3,18 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { withAdminRoute } from "@/app/lib/auth/withAdminRoute";
-import { getRoomStats } from "@/app/lib/admin-api";
+import { getAdminRoomStats } from "@/app/lib/admin-api";
 
 function AdminDashboardPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["admin-room-stats"],
-    queryFn: getRoomStats,
+    queryFn: () => getAdminRoomStats(),
     refetchInterval: 30_000,
   });
 
   const cards = useMemo(
     () => [
-      { label: "Total Rooms", value: data?.totalRooms ?? 0 },
+      { label: "Total Rooms", value: data?.total ?? 0 },
       { label: "Available", value: data?.available ?? 0 },
       { label: "Reserved", value: data?.reserved ?? 0 },
       { label: "Occupied", value: data?.occupied ?? 0 },

@@ -7,7 +7,7 @@ import { getAdminSettings, updateAdminSettings } from "@/app/lib/admin-api";
 import { useToastStore } from "@/app/stores/toast-store";
 
 function AdminSettingsPage() {
-  const pushToast = useToastStore((state) => state.pushToast);
+  const addToast = useToastStore((state) => state.addToast);
   const settingsQuery = useQuery({
     queryKey: ["admin-settings"],
     queryFn: getAdminSettings,
@@ -22,18 +22,18 @@ function AdminSettingsPage() {
 
   useEffect(() => {
     if (!settingsQuery.data) return;
-    setHotelName(settingsQuery.data.hotelName ?? "");
-    setLocation(settingsQuery.data.location ?? "");
-    setCity(settingsQuery.data.city ?? "");
-    setCountry(settingsQuery.data.country ?? "");
+    setHotelName(settingsQuery.data.hotel?.name ?? "");
+    setLocation(settingsQuery.data.hotel?.address ?? "");
+    setCity(settingsQuery.data.hotel?.city ?? "");
+    setCountry(settingsQuery.data.hotel?.country ?? "");
     setRoomTypes((settingsQuery.data.roomTypes ?? []).join(","));
     setAllowPayLater(Boolean(settingsQuery.data.allowPayLater));
   }, [settingsQuery.data]);
 
   const saveMutation = useMutation({
     mutationFn: updateAdminSettings,
-    onSuccess: () => pushToast({ title: "Settings updated", variant: "success" }),
-    onError: () => pushToast({ title: "Failed to update settings", variant: "error" }),
+    onSuccess: () => addToast({ title: "Settings updated", variant: "success" }),
+    onError: () => addToast({ title: "Failed to update settings", variant: "error" }),
   });
 
   function onSave(event: FormEvent<HTMLFormElement>) {

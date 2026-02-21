@@ -28,7 +28,9 @@ export type SendOtpResponse = {
 export type BookingStatus =
   | "PENDING"
   | "CONFIRMED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "CHECKED_IN"
+  | "CHECKED_OUT";
 
 export type RoomStatus = "AVAILABLE" | "RESERVED" | "OCCUPIED" | "UNAVAILABLE";
 

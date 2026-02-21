@@ -7,7 +7,7 @@ import { useToastStore } from "@/app/stores/toast-store";
 
 function AdminReservationsPage() {
   const queryClient = useQueryClient();
-  const pushToast = useToastStore((state) => state.pushToast);
+  const addToast = useToastStore((state) => state.addToast);
 
   const bookingsQuery = useQuery({
     queryKey: ["admin-bookings"],
@@ -20,9 +20,9 @@ function AdminReservationsPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
       await queryClient.invalidateQueries({ queryKey: ["admin-room-stats"] });
-      pushToast({ title: "Guest checked in", variant: "success" });
+      addToast({ title: "Guest checked in", variant: "success" });
     },
-    onError: () => pushToast({ title: "Check-in failed", variant: "error" }),
+    onError: () => addToast({ title: "Check-in failed", variant: "error" }),
   });
 
   const checkOutMutation = useMutation({
@@ -30,9 +30,9 @@ function AdminReservationsPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
       await queryClient.invalidateQueries({ queryKey: ["admin-room-stats"] });
-      pushToast({ title: "Guest checked out", variant: "success" });
+      addToast({ title: "Guest checked out", variant: "success" });
     },
-    onError: () => pushToast({ title: "Check-out failed", variant: "error" }),
+    onError: () => addToast({ title: "Check-out failed", variant: "error" }),
   });
 
   return (
@@ -63,10 +63,10 @@ function AdminReservationsPage() {
 
               return (
                 <tr key={booking.id} className="border-b border-gray-100">
-                  <td className="px-3 py-2 text-gray-700">{booking.user.name ?? booking.user.email}</td>
-                  <td className="px-3 py-2 text-gray-700">{booking.room.type}</td>
+                  <td className="px-3 py-2 text-gray-700">{booking.user?.email ?? "Guest"}</td>
+                  <td className="px-3 py-2 text-gray-700">{booking.room?.type ?? "-"}</td>
                   <td className="px-3 py-2 text-gray-700">
-                    {booking.checkInDate} → {booking.checkOutDate}
+                    {booking.checkIn} → {booking.checkOut}
                   </td>
                   <td className="px-3 py-2 text-gray-700">{booking.status}</td>
                   <td className="px-3 py-2">

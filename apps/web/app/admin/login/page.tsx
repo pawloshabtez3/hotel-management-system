@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { adminLogin } from "@/app/lib/auth-api";
@@ -8,7 +8,7 @@ import { useAuthStore } from "@/app/stores/auth-store";
 import { toApiErrorMessage } from "@/app/lib/api-client";
 import { useToast } from "@/app/lib/use-toast";
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -73,5 +73,13 @@ export default function AdminLoginPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-6">Loading...</div>}>
+      <AdminLoginForm />
+    </Suspense>
   );
 }
